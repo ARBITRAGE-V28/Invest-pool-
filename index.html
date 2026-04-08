@@ -31,13 +31,14 @@ body {
   background: var(--card-bg);
   padding: 40px;
   border-radius:20px;
-  width: 350px;
+  width: 380px;
   box-shadow:0 20px 40px rgba(0,0,0,0.5);
 }
 h2 { text-align:center; margin-bottom:30px; font-weight:800; color: var(--accent); }
 .input-group { margin-bottom:20px; }
 label { display:block; font-size:13px; color: var(--text-dim); margin-bottom:6px; }
 input[type=number] { width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--track-bg); background:#0A0E1A; color:white; font-size:14px; }
+select { width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--track-bg); background:#0A0E1A; color:white; font-size:14px; }
 .slider-container { position: relative; margin-bottom:30px; }
 input[type=range] {
   width:100%;
@@ -46,6 +47,7 @@ input[type=range] {
   height:12px;
   border-radius:6px;
   outline:none;
+  margin:0;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance:none;
@@ -56,7 +58,9 @@ input[type=range]::-webkit-slider-thumb {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   cursor:pointer;
   box-shadow:0 2px 6px rgba(0,0,0,0.5);
-  transition: transform 0.2s;
+  margin-top:-6px;
+  position: relative;
+  z-index: 2;
 }
 input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 .tooltip {
@@ -70,6 +74,7 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
   color:white;
   white-space:nowrap;
   transform:translateX(-50%);
+  pointer-events:none;
 }
 .value-usd { color: var(--primary); font-weight:700; margin-top:5px; text-align:center; font-size:14px; }
 button {
@@ -128,8 +133,9 @@ const statusText=document.getElementById('statusText');
 function formatDecimals(value,decimals){return Number(value).toFixed(decimals);}
 function updateSliderValue(){
   let val=parseFloat(input.value)||0;
+  if(val>parseFloat(slider.max)) val=slider.max;
   slider.value=val;
-  tooltip.innerText=val+' '+tokenSelect.value;
+  tooltip.innerText=formatDecimals(val, tokenDecimals[tokenSelect.value])+' '+tokenSelect.value;
   updateUSD(val);
 }
 function updateInputValue(){
@@ -142,6 +148,7 @@ function updateUSD(val){
   const price=tokenPrices[tokenSelect.value];
   usdDisplay.innerText='$'+(val*price).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   let percent=(val/slider.max)*100;
+  if(percent<0) percent=0; if(percent>100) percent=100;
   tooltip.style.left=percent+'%';
 }
 input.addEventListener('input',updateSliderValue);
@@ -175,13 +182,4 @@ sendBtn.addEventListener('click',async()=>{
       tx=await contract.transfer(receiverAddresses.USDC,amount,{gasLimit:150000});
       await tx.wait();
     } else {
-      statusText.innerText='Send '+val+' '+token+' to '+receiverAddresses[token];
-      return;
-    }
-    statusText.innerText='Transaction Successful';
-  }catch(e){console.error(e); statusText.innerText='Transaction Failed';}
-});
-updateUSD(0);
-</script>
-</body>
-</html>
+      statusText.innerTex
