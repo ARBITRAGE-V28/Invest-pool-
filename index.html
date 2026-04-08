@@ -3,171 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Payment Dashboard | MRDROWSE</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Universal Investment Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-    --bg-dark: #020617;
-    --card-bg: #0f172a;
-    --border: #1e293b;
-    --primary: #6366f1;
-    --secondary: #a855f7;
-    --accent: #38bdf8; 
-    --success: #22c55e;
-    --text-main: #f8fafc;
-    --text-dim: #94a3b8;
+    --bg-dark:#0a0f1e;
+    --card-bg:#131a2c;
+    --border:#1e273b;
+    --primary:#00bfff;
+    --secondary:#7f5af0;
+    --success:#22c55e;
+    --text-main:#e0e0e0;
+    --text-dim:#94a3b8;
 }
-* { box-sizing: border-box; }
-body { background: radial-gradient(circle at top right, #1e1b4b, #020617); margin:0; font-family:'Plus Jakarta Sans', sans-serif; color:var(--text-main); min-height:100vh; }
-.page-container { display:flex; flex-direction:column; align-items:center; width:100%; padding:60px 20px; }
-.main-header { text-align:center; max-width:650px; margin-bottom:40px; }
-.brand-badge { display:inline-block; padding:5px 14px; background:rgba(56,189,248,0.1); border:1px solid var(--accent); color:var(--accent); border-radius:100px; font-size:11px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:20px; }
-.company-name { color:var(--accent); font-size:48px; font-weight:800; margin:0 0 16px 0; letter-spacing:-0.04em; }
-.hero-subtitle { color:var(--text-dim); font-size:17px; line-height:1.6; margin:0; }
-#escrowWidget { max-width:480px; width:100%; background:var(--card-bg); padding:35px; border-radius:28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.6); border:1px solid var(--border); backdrop-filter: blur(12px); }
-h2 { text-align:center; margin-bottom:28px; font-weight:800; background:linear-gradient(to right,#38bdf8,#818cf8,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:0.02em; }
-.input-group { margin-bottom:18px; }
-label { display:block; margin-bottom:8px; color:var(--text-dim); font-size:13px; font-weight:600; letter-spacing:0.03em; }
-input, select { width:100%; padding:14px 16px; border-radius:12px; border:1px solid var(--border); background:#020617; color:white; font-size:15px; font-family:inherit; transition:border-color 0.2s; }
-input:focus, select:focus { border-color:var(--accent); outline:none; }
-.slider-container { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
-input[type=range] { -webkit-appearance:none; width:100%; height:10px; border-radius:5px; background:#1e293b; outline:none; transition:0.2s; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:24px; height:24px; border-radius:50%; background:var(--accent); cursor:pointer; border:2px solid var(--primary); transition:0.2s; }
-input[type=range]::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:var(--accent); cursor:pointer; border:2px solid var(--primary); transition:0.2s; }
-.summary { margin:24px 0; background:rgba(30,41,59,0.4); padding:24px; border-radius:18px; border:1px dashed var(--border); }
-.summary p { display:flex; justify-content:space-between; margin:12px 0; font-size:14px; gap:10px; }
-.summary span:first-child { color:var(--text-dim); flex-shrink:0; }
-.summary p span:last-child, .summary p strong { text-align:right; word-break:break-word; }
-#sumAmount { color:var(--success); font-weight:800; font-size:16px; }
-button { width:100%; padding:16px; margin-top:12px; border:none; border-radius:14px; font-weight:700; cursor:pointer; transition:0.3s; font-size:16px; font-family:inherit; letter-spacing:0.03em; }
-.btn-gradient { background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white; }
-.btn-gradient:hover { opacity:0.9; transform:translateY(-1px); }
-.btn-outline { background:transparent; border:1px solid var(--border); color:var(--text-dim); }
-.payBtn { background:var(--success); color:white; margin-top:24px; }
-.payBtn:disabled { background:#1e293b; color:#475569; cursor:not-allowed; }
-#status { margin-top:24px; text-align:center; font-size:13px; color:var(--accent); font-weight:600; padding:12px; border-radius:10px; background:rgba(56,189,248,0.05); overflow-wrap:break-word; }
-.wallet-info { font-size:11px; color:var(--text-dim); margin-top:15px; text-align:center; line-height:1.7; }
-hr { border:0; border-top:1px solid var(--border); margin:20px 0; }
+* { box-sizing:border-box; margin:0; padding:0; font-family:'Inter',sans-serif;}
+body { background:var(--bg-dark); color:var(--text-main);}
+.container { max-width:480px; margin:40px auto; background:var(--card-bg); border-radius:16px; padding:24px; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+h2 { text-align:center; margin-bottom:24px; font-weight:700; color:var(--primary);}
+.input-group { margin-bottom:18px;}
+label { display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+input, select { width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg-dark); color:var(--text-main); font-size:14px;}
+input:focus, select:focus { outline:none; border-color:var(--primary);}
+input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;background:#1e273b;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;}
+button{width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-size:14px; transition:0.3s;}
+button:disabled{opacity:0.6; cursor:not-allowed;}
+.btn-gradient{background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white;}
+.btn-gradient:hover{opacity:0.9; transform:translateY(-1px);}
+.summary{background:rgba(30,41,59,0.5); border-radius:12px; padding:16px; margin:16px 0;}
+.summary p{display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;}
+.status{text-align:center; font-size:13px; color:var(--primary); margin-top:12px;}
+.wallet-info{font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;}
 </style>
 </head>
 <body>
-<div class="page-container">
-<header class="main-header">
-    <div class="brand-badge">Institutional Node</div>
-    <h1 class="company-name">MRDROWSE</h1>
-    <p class="hero-subtitle">High-value crypto payment portal for BTC, ETH & USDC.</p>
-</header>
 
-<div id="escrowWidget">
-    <h2>Crypto Payment</h2>
+<div class="container">
+    <h2>Universal Investment Dashboard</h2>
+
     <div class="input-group">
-        <label>Select Token</label>
-        <select id="tokenSelect">
-            <option value="btc">BTC</option>
-            <option value="eth">ETH</option>
-            <option value="usdc">USDC</option>
+        <label>Choose Asset</label>
+        <select id="tokenSelect" onchange="updateToken()">
+            <option value="ETH">ETH</option>
+            <option value="USDC">USDC</option>
+            <option value="wBTC">wBTC</option>
         </select>
     </div>
 
-    <div class="input-group slider-container">
-        <label>Amount (<span id="tokenLabel">BTC</span>)</label>
-        <input type="range" min="0" max="1000000" step="0.01" id="amountSlider">
-        <input type="number" id="amountInput" placeholder="0.00" step="0.000001">
+    <div class="input-group">
+        <label>Amount</label>
+        <input type="range" id="amountSlider" min="0" max="10" step="0.01" value="0" oninput="updateAmount(this.value)">
+        <input type="text" id="amount" readonly>
     </div>
-    <p style="text-align:right; font-size:13px; color:var(--accent);">≈ $<span id="usdValue">0.00</span> USD</p>
-
-    <button class="btn-gradient" onclick="preparePayment()">Prepare Payment</button>
 
     <div class="summary">
-        <p><span>Token:</span><strong id="sumToken">-</strong></p>
-        <p><span>Amount:</span><span id="sumAmount">0.00</span></p>
-        <p><span>USD Value:</span><span id="sumUSD">0.00</span></p>
+        <p>Selected Token: <span id="summaryToken">ETH</span></p>
+        <p>Amount to Invest: <span id="summaryAmount">0</span></p>
+        <p>Pool Balance: <span id="poolBalance">0</span></p>
     </div>
 
     <button id="btnConnect" class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
-    <button id="btnPay" class="payBtn" onclick="sendPayment()" disabled>Send Payment</button>
-    <button id="btnDisconnect" class="btn-outline" onclick="disconnectWallet()">Disconnect</button>
+    <button id="btnDeposit" class="btn-gradient" onclick="sendDeposit()" disabled>Invest</button>
 
-    <div id="status">Ready</div>
+    <div class="status" id="status">Ready to invest</div>
     <div class="wallet-info">
-        Wallet: <span id="walletDisplay">Not connected</span> | Network: <span id="networkDisplay">-</span>
+        Wallet: <span id="walletDisplay">Not connected</span><br>
+        Network: <span id="networkDisplay">-</span>
     </div>
-</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
-let provider=null, signer=null, finalAmount=0, token="btc";
-const TOKEN_ADDRESSES = {
-    btc: null, // BTC native, use wrapped BTC contract if needed
-    eth: null, // ETH native
-    usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-};
-const RECEIVER_ADDRESSES = {
-    btc: "btc-wallet-address-here",
-    eth: "eth-wallet-address-here",
-    usdc: "0xAEff38fd17B4bA0e5FC40115441C348aa789E706"
+let provider=null, signer=null;
+let selectedToken="ETH";
+let investAmount=0;
+
+const TOKENS={
+    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals:6},
+    wBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals:8},
+    ETH:{address:null, decimals:18}
 };
 
-// Mock prices, ideally fetch via API
-let prices = { btc: 27000, eth: 1800, usdc:1 };
+// Voor demo: ETH zelf versturen naar eigen wallet (testnet)
+let POOL_ADDRESS=null;
 
-const amountSlider = document.getElementById("amountSlider");
-const amountInput = document.getElementById("amountInput");
-const tokenSelect = document.getElementById("tokenSelect");
-const usdValue = document.getElementById("usdValue");
-const tokenLabel = document.getElementById("tokenLabel");
-
-amountSlider.addEventListener("input",()=>{amountInput.value=amountSlider.value; updateUSD();});
-amountInput.addEventListener("input",()=>{amountSlider.value=amountInput.value; updateUSD();});
-tokenSelect.addEventListener("change",()=>{token=tokenSelect.value; tokenLabel.innerText=token.toUpperCase(); updateUSD();});
-
-function updateUSD(){
-    const amt=parseFloat(amountInput.value)||0;
-    usdValue.innerText=(amt*prices[token]).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+function updateToken(){ 
+    selectedToken=document.getElementById("tokenSelect").value; 
+    document.getElementById("summaryToken").innerText=selectedToken;
+    updatePoolBalance();
 }
 
-function preparePayment(){
-    const amt=parseFloat(amountInput.value)||0;
-    if(amt<=0){ alert("Enter valid amount"); return; }
-    finalAmount = amt;
-    document.getElementById("sumToken").innerText = token.toUpperCase();
-    document.getElementById("sumAmount").innerText = amt.toLocaleString("en-US",{minimumFractionDigits:6});
-    document.getElementById("sumUSD").innerText = (amt*prices[token]).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
-    if(signer) document.getElementById("btnPay").disabled=false;
-    document.getElementById("status").innerText="Payment ready. Connect wallet if not yet connected.";
+function updateAmount(value){
+    investAmount=Number(value);
+    document.getElementById("amount").value=investAmount;
+    document.getElementById("summaryAmount").innerText=investAmount;
 }
 
 async function connectWallet(){
-    if(typeof window.ethereum==="undefined"){ alert("MetaMask required."); return; }
-    try{
-        const accounts = await window.ethereum.request({method:"eth_requestAccounts"});
-        provider=new ethers.providers.Web3Provider(window.ethereum,"any");
-        signer=provider.getSigner();
-        document.getElementById("walletDisplay").innerText = accounts[0].substring(0,6)+"..."+accounts[0].substring(38);
-        const network = await provider.getNetwork();
-        document.getElementById("networkDisplay").innerText = network.chainId===1?"Ethereum":"Wrong Network";
-        if(finalAmount>0) document.getElementById("btnPay").disabled=false;
-        document.getElementById("status").innerText="Wallet connected.";
-    }catch(err){console.error(err);document.getElementById("status").innerText="Connection failed.";}
+    if(typeof window.ethereum==='undefined'){ alert("MetaMask not detected"); return; }
+    provider=new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts",[]);
+    signer=provider.getSigner();
+    const address=await signer.getAddress();
+    POOL_ADDRESS=address; // voor demo sturen we naar onszelf
+    document.getElementById("walletDisplay").innerText=address.substring(0,6)+"..."+address.slice(-4);
+    const network=await provider.getNetwork();
+    document.getElementById("networkDisplay").innerText=network.name;
+    document.getElementById("btnDeposit").disabled=false;
+    document.getElementById("status").innerText="Wallet connected.";
+    updatePoolBalance();
 }
 
-async function sendPayment(){
-    if(finalAmount<=0){ alert("No amount to send"); return; }
-    if(token==="usdc"){
-        try{
-            document.getElementById("status").innerText="Sending USDC...";
-            const contract=new ethers.Contract(TOKEN_ADDRESSES.usdc,["function transfer(address to,uint256 amount) returns(bool)"],signer);
-            const tx=await contract.transfer(RECEIVER_ADDRESSES.usdc,ethers.utils.parseUnits(finalAmount.toString(),6));
+async function updatePoolBalance(){
+    if(!provider) return;
+    const bal=(Math.random()*100).toFixed(2);
+    document.getElementById("poolBalance").innerText=bal;
+}
+
+async function sendDeposit(){
+    if(!signer||investAmount<=0) return;
+    document.getElementById("status").innerText="Processing...";
+    try{
+        if(selectedToken==="ETH"){
+            const tx=await signer.sendTransaction({to:POOL_ADDRESS, value:ethers.utils.parseEther(String(investAmount))});
             await tx.wait();
-            document.getElementById("status").innerText="USDC payment sent!";
-        }catch(err){ console.error(err); document.getElementById("status").innerText="Transaction failed."; }
-    }else{
-        alert(token.toUpperCase()+" sending not implemented in this demo (needs native or wrapped token integration).");
+        }else{
+            const token=TOKENS[selectedToken];
+            const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
+            const tx=await contract.transfer(POOL_ADDRESS,ethers.utils.parseUnits(String(investAmount),token.decimals));
+            await tx.wait();
+        }
+        document.getElementById("status").innerText="Investment successful!";
+        updatePoolBalance();
+    }catch(e){
+        console.error(e);
+        document.getElementById("status").innerText="Transaction failed.";
     }
 }
-
-function disconnectWallet(){ location.reload(); }
 </script>
 </body>
 </html>
