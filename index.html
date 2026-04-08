@@ -40,6 +40,7 @@ button:disabled{opacity:0.6;cursor:not-allowed;}
 #sliderTooltip{position:absolute;color:var(--primary);font-weight:700;pointer-events:none;transition:opacity 0.2s;}
 .range-track{position:relative;height:14px;border-radius:7px;background:#1e273b;}
 .range-fill{position:absolute;height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:7px;width:0;}
+.usd-display{font-size:12px;color:var(--dim);margin-top:4px;text-align:right;}
 </style>
 </head>
 <body>
@@ -60,10 +61,11 @@ button:disabled{opacity:0.6;cursor:not-allowed;}
   <label>Amount</label>
   <div class="range-track">
     <div class="range-fill" id="rangeFill"></div>
-    <input type="range" id="amountSlider" min="0" max="10000000" step="0.0001" value="0" oninput="syncSliderInput(this.value)">
+    <input type="range" id="amountSlider" oninput="syncSliderInput(this.value)">
   </div>
   <input type="text" id="amountInput" placeholder="0" oninput="syncInputSlider(this.value)">
   <div id="sliderTooltip"></div>
+  <div class="usd-display">≈ $<span id="usdEquivalent">0</span></div>
 </div>
 
 <div class="summary">
@@ -84,24 +86,31 @@ Network: <span id="networkDisplay">-</span>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
+// Wallet
 let provider=null, signer=null, POOL_ADDRESS=null;
 let selectedToken="ETH", investAmount=0;
+
+// Realistic max slider per token
 const TOKENS={
-  ETH:{decimals:18,address:null},
-  USDC:{decimals:6,address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
-  BTC:{decimals:8,address:null} // Simulated
+  ETH:{decimals:18,max:100,usd:1800,address:null},
+  USDC:{decimals:6,max:10000000,usd:1,address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
+  BTC:{decimals:8,max:100,usd:30000,address:null}
 };
 
 function formatCrypto(value,decimals){ return Number(value).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:decimals}); }
 
+// Update token selection
 function updateToken(){
   selectedToken=document.getElementById("tokenSelect").value;
+  const t=TOKENS[selectedToken];
   document.getElementById("summaryToken").innerText=selectedToken;
-  const dec=TOKENS[selectedToken].decimals;
-  document.getElementById("amountSlider").step=1/(10**dec);
-  document.getElementById("amountInput").step=1/(10**dec);
+  const slider=document.getElementById("amountSlider");
+  slider.min=0;
+  slider.max=t.max;
+  slider.step=1/(10**t.decimals);
+  document.getElementById("amountInput").step=slider.step;
+  syncSliderInput(slider.value);
   updatePoolBalance();
-  updateRangeFill();
 }
 
 // Slider -> Input
@@ -110,6 +119,7 @@ function syncSliderInput(val){
   investAmount=parseFloat(parseFloat(val).toFixed(dec));
   document.getElementById("amountInput").value=investAmount;
   document.getElementById("summaryAmount").innerText=formatCrypto(investAmount,dec);
+  document.getElementById("usdEquivalent").innerText=formatCrypto(investAmount*TOKENS[selectedToken].usd,2);
   updateTooltip();
   updateRangeFill();
 }
@@ -120,11 +130,13 @@ function syncInputSlider(val){
   if(val.split('.').length>2) val=val.split('.').slice(0,2).join('.');
   let num=parseFloat(val);
   if(isNaN(num)||num<0) num=0;
-  const dec=TOKENS[selectedToken].decimals;
-  investAmount=parseFloat(num.toFixed(dec));
+  const t=TOKENS[selectedToken];
+  if(num>t.max) num=t.max;
+  investAmount=parseFloat(num.toFixed(t.decimals));
   document.getElementById("amountInput").value=investAmount;
   document.getElementById("amountSlider").value=investAmount;
-  document.getElementById("summaryAmount").innerText=formatCrypto(investAmount,dec);
+  document.getElementById("summaryAmount").innerText=formatCrypto(investAmount,t.decimals);
+  document.getElementById("usdEquivalent").innerText=formatCrypto(investAmount*t.usd,2);
   updateTooltip();
   updateRangeFill();
 }
@@ -136,8 +148,8 @@ function updateTooltip(){
   const rect=slider.getBoundingClientRect();
   const percent=(slider.value-slider.min)/(slider.max-slider.min);
   tooltip.innerText=formatCrypto(slider.value,TOKENS[selectedToken].decimals);
-  tooltip.style.left=(rect.left + percent*rect.width - 20) + "px";
-  tooltip.style.top=(rect.top - 28) + "px";
+  tooltip.style.left=(percent*slider.offsetWidth-20)+"px";
+  tooltip.style.top="-28px";
   tooltip.style.opacity=1;
 }
 
@@ -166,7 +178,8 @@ async function connectWallet(){
 
 // Simulate pool balance
 function updatePoolBalance(){
-  const bal=(Math.random()*1000000).toFixed(TOKENS[selectedToken].decimals);
+  const t=TOKENS[selectedToken];
+  const bal=(Math.random()*t.max).toFixed(t.decimals);
   document.getElementById("poolBalance").innerText=bal;
 }
 
@@ -179,7 +192,7 @@ async function sendDeposit(){
       const tx=await signer.sendTransaction({to:POOL_ADDRESS,value:ethers.utils.parseEther(String(investAmount))});
       await tx.wait();
     } else if(selectedToken==="BTC"){
-      alert(`BTC demo: Simulated investment of ${investAmount} BTC`);
+      alert(`BTC demo: Simulated investment of ${investAmount} BTC (~$${investAmount*TOKENS.BTC.usd})`);
     } else {
       const token=TOKENS[selectedToken];
       const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
