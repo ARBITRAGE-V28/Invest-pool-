@@ -27,7 +27,7 @@ input:focus, select:focus { outline:none; border-color:var(--primary);}
 input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;background:#1e273b;cursor:pointer;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;}
 input[type=number]{-moz-appearance:textfield;} 
-input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;} 
 button{width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-size:14px; transition:0.3s;}
 button:disabled{opacity:0.6; cursor:not-allowed;}
 .btn-gradient{background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white;}
@@ -67,6 +67,7 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 
     <button id="btnConnect" class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
     <button id="btnDeposit" class="btn-gradient" onclick="sendDeposit()" disabled>Invest</button>
+    <button class="btn-gradient" onclick="disconnectWallet()">Disconnect Wallet</button>
 
     <div class="status" id="status">Ready to invest</div>
     <div class="wallet-info">
@@ -76,11 +77,15 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
+<script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/@coinbase/wallet-sdk@3.6.0/dist/umd/index.min.js"></script>
+
 <script>
-let provider = null, signer = null;
+let provider, signer, web3Modal;
 let selectedToken = "BTC";
 let investUSD = 27000;
-let POOL_ADDRESS = null;
+let userAddress = null;
 
 const PRICES = { BTC:30000, ETH:1800, USDC:1 };
 const TOKENS = {
@@ -89,17 +94,38 @@ const TOKENS = {
     ETH:  {address:null, decimals:18}
 };
 
+// --- Initialize Web3Modal for multi-wallet support ---
+window.addEventListener('load', async () => {
+    const providerOptions = {
+        walletconnect: {
+            package: window.WalletConnectProvider.default,
+            options: { infuraId: "YOUR_INFURA_ID" }
+        },
+        coinbasewallet: {
+            package: window.CoinbaseWalletSDK,
+            options: { appName: "Universal Dashboard", infuraId: "YOUR_INFURA_ID" }
+        }
+    };
+
+    web3Modal = new window.Web3Modal.default({
+        cacheProvider: true,
+        providerOptions
+    });
+
+    fetchRealtimePrices();
+    updateAmount(investUSD);
+    setInterval(fetchRealtimePrices, 30000);
+});
+
+// --- Price & Coin Calculations ---
 async function fetchRealtimePrices() {
     try {
-        const response = await fetch(
-            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,usd-coin&vs_currencies=usd"
-        );
-        const data = await response.json();
+        const data = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,usd-coin&vs_currencies=usd").then(r=>r.json());
         PRICES.BTC = data.bitcoin.usd;
         PRICES.ETH = data.ethereum.usd;
         PRICES.USDC = data["usd-coin"].usd;
         updateCoinEquivalent();
-    } catch(e) { console.error("Failed to fetch prices:", e); }
+    } catch(e) { console.error(e); }
 }
 
 function updateToken() {
@@ -121,76 +147,62 @@ function updateCoinEquivalent() {
     document.getElementById("coinEquivalent").innerText = `${coinAmount} ${selectedToken}`;
 }
 
-// ---- MetaMask connectie ----
+// --- Wallet connect ---
 async function connectWallet() {
-    if(typeof window.ethereum === 'undefined') {
-        alert("MetaMask not detected. Please install it first.");
-        return;
-    }
-
     try {
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+        const instance = await web3Modal.connect();
+        provider = new ethers.providers.Web3Provider(instance);
         signer = provider.getSigner();
-        POOL_ADDRESS = accounts[0];
+        userAddress = await signer.getAddress();
 
-        document.getElementById("walletDisplay").innerText = POOL_ADDRESS.substring(0,6) + "..." + POOL_ADDRESS.slice(-4);
+        document.getElementById("walletDisplay").innerText = userAddress.substring(0,6) + "..." + userAddress.slice(-4);
         const network = await provider.getNetwork();
         document.getElementById("networkDisplay").innerText = network.name;
 
         document.getElementById("btnDeposit").disabled = false;
-        document.getElementById("status").innerText = "Wallet connected.";
+        document.getElementById("status").innerText = "Wallet connected!";
 
-        updatePoolBalance();
-
-        window.ethereum.on('chainChanged', () => location.reload());
-    } catch(err) {
-        console.error(err);
-        document.getElementById("status").innerText = "Connection failed or rejected.";
+        instance.on("accountsChanged", () => location.reload());
+        instance.on("chainChanged", () => location.reload());
+    } catch(e) {
+        console.error(e);
+        document.getElementById("status").innerText = "Connection rejected or failed.";
     }
 }
 
-async function updatePoolBalance() {
-    if(!provider) return;
-    const bal = (Math.random()*100).toFixed(2);
-    document.getElementById("poolBalance").innerText = bal;
+async function disconnectWallet() {
+    if(web3Modal) {
+        await web3Modal.clearCachedProvider();
+        location.reload();
+    }
 }
 
-// ---- Verbeterde transactie via MetaMask ----
+// --- Deposit / Send Transaction ---
 async function sendDeposit() {
     if(!signer) return;
-    document.getElementById("status").innerText = "Waiting for MetaMask confirmation...";
-
+    document.getElementById("status").innerText = "Processing transaction...";
     try {
         const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(6);
 
-        if(selectedToken === "ETH"){
-            const tx = await signer.sendTransaction({
-                to: POOL_ADDRESS,
-                value: ethers.utils.parseEther(String(coinAmount))
-            });
+        if(selectedToken==="ETH"){
+            // ETH transaction opens MetaMask / Coinbase popup
+            const tx = await signer.sendTransaction({ to: userAddress, value: ethers.utils.parseEther(String(coinAmount)) });
             await tx.wait();
         } else {
             const token = TOKENS[selectedToken];
             const contract = new ethers.Contract(token.address, ["function transfer(address to,uint256 amount) returns(bool)"], signer);
-            const tx = await contract.transfer(
-                POOL_ADDRESS,
-                ethers.utils.parseUnits(String(coinAmount), token.decimals)
-            );
+            const tx = await contract.transfer(userAddress, ethers.utils.parseUnits(String(coinAmount), token.decimals));
             await tx.wait();
         }
 
         document.getElementById("status").innerText = "Investment successful!";
-        updatePoolBalance();
     } catch(e) {
         console.error(e);
-        document.getElementById("status").innerText = "Transaction failed or rejected in MetaMask.";
+        // Fout wordt direct door wallet getoond, hier alleen status update
+        document.getElementById("status").innerText = "Transaction failed (check wallet popup).";
     }
 }
-
-fetchRealtimePrices();
-updateAmount(27000);
-setInterval(fetchRealtimePrices, 30000);
 </script>
+
 </body>
 </html>
