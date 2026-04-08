@@ -126,7 +126,8 @@ function updateAmount(value) {
 
 function updateCoinEquivalent() {
     if(!PRICES[selectedToken]) return;
-    const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(TOKENS[selectedToken].decimals);
+    // Afronden op 6 decimalen
+    const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(6);
     document.getElementById("coinEquivalent").innerText = `${coinAmount} ${selectedToken}`;
 }
 
@@ -155,7 +156,7 @@ async function sendDeposit() {
     if(!signer || investUSD < 27000) return;
     document.getElementById("status").innerText = "Processing...";
     try {
-        const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(TOKENS[selectedToken].decimals);
+        const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(6); // afgerond
         if(selectedToken==="ETH"){
             const tx = await signer.sendTransaction({to:POOL_ADDRESS, value:ethers.utils.parseEther(String(coinAmount))});
             await tx.wait();
