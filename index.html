@@ -34,8 +34,9 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 .summary p{display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;}
 .status{text-align:center; font-size:13px; color:var(--primary); margin-top:12px;}
 .wallet-info{font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;}
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* Verwijder scroll bij nummer input */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin:0;}
 input[type=number] { -moz-appearance:textfield; }
 </style>
 </head>
@@ -55,8 +56,8 @@ input[type=number] { -moz-appearance:textfield; }
 
     <div class="input-group">
         <label>Amount</label>
-        <input type="range" id="amountSlider" min="0" max="1000000" step="0.01" value="0" oninput="updateAmount(this.value)">
-        <input type="number" id="amountInput" min="0" step="0.00000001" oninput="updateSlider(this.value)">
+        <input type="range" id="amountSlider" min="0" max="3000000" step="0.01" value="0" oninput="updateAmount(this.value)">
+        <input type="number" id="amountInput" min="0" max="3000000" step="0.00000001" oninput="updateSlider(this.value)">
     </div>
 
     <div class="summary">
@@ -85,7 +86,7 @@ let TOKENS={
     ETH:{decimals:18},
     USDC:{decimals:6}
 };
-let pricesUSD={BTC:30000, ETH:1800, USDC:1}; // default demo prices
+let pricesUSD={BTC:30000, ETH:1800, USDC:1}; // demo prijzen
 
 function updateToken(){
     selectedToken=document.getElementById("tokenSelect").value;
@@ -94,18 +95,20 @@ function updateToken(){
 }
 
 function updateAmount(value){
-    investAmount=Number(value);
+    investAmount=Math.min(Number(value),3000000);
     investAmount=isNaN(investAmount)?0:investAmount;
     document.getElementById("amountInput").value=investAmount.toFixed(TOKENS[selectedToken].decimals);
     document.getElementById("summaryAmount").innerText=investAmount.toFixed(TOKENS[selectedToken].decimals);
+    document.getElementById("amountSlider").value=investAmount;
     updateUSD();
 }
 
 function updateSlider(value){
-    investAmount=Number(value);
+    investAmount=Math.min(Number(value),3000000);
     investAmount=isNaN(investAmount)?0:investAmount;
     document.getElementById("amountSlider").value=investAmount;
     document.getElementById("summaryAmount").innerText=investAmount.toFixed(TOKENS[selectedToken].decimals);
+    document.getElementById("amountInput").value=investAmount.toFixed(TOKENS[selectedToken].decimals);
     updateUSD();
 }
 
