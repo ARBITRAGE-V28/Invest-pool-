@@ -12,13 +12,12 @@
     --border:#1e273b;
     --primary:#00bfff;
     --secondary:#7f5af0;
-    --success:#22c55e;
     --text-main:#e0e0e0;
     --text-dim:#94a3b8;
 }
 * { box-sizing:border-box; margin:0; padding:0; font-family:'Inter',sans-serif;}
 body { background:var(--bg-dark); color:var(--text-main);}
-.container { max-width:480px; margin:40px auto; background:var(--card-bg); border-radius:16px; padding:24px; box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.container { max-width:480px; margin:40px auto; background:var(--card-bg); border-radius:16px; padding:24px; }
 h2 { text-align:center; margin-bottom:24px; font-weight:700; color:var(--primary);}
 .input-group { margin-bottom:18px;}
 label { display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
@@ -36,67 +35,54 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 .summary p{display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;}
 .status{text-align:center; font-size:13px; color:var(--primary); margin-top:12px;}
 .wallet-info{font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;}
-/* Modal voor multi-wallet UI */
-#walletModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;justify-content:center;align-items:center;}
-#walletModalContent{background:var(--card-bg);padding:24px;border-radius:16px;width:90%;max-width:360px;text-align:center;}
-#walletModalContent button{margin:12px 0;}
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Universal Investment Dashboard</h2>
+<h2>Universal Investment Dashboard</h2>
 
-    <div class="input-group">
-        <label>Choose Asset</label>
-        <select id="tokenSelect" onchange="updateToken()">
-            <option value="BTC">BTC</option>
-            <option value="ETH">ETH</option>
-            <option value="USDC">USDC</option>
-        </select>
-    </div>
-
-    <div class="input-group">
-        <label>Investment Amount (USD)</label>
-        <input type="range" id="amountSlider" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
-        <input type="number" id="amount" readonly>
-    </div>
-
-    <div class="summary">
-        <p>Selected Token: <span id="summaryToken">BTC</span></p>
-        <p>Amount to Invest (USD): <span id="summaryAmount">27,000</span></p>
-        <p>Coin Equivalent: <span id="coinEquivalent">-</span></p>
-        <p>Pool Balance: <span id="poolBalance">0</span></p>
-    </div>
-
-    <button id="btnConnect" class="btn-gradient" onclick="showWalletModal()">Connect Wallet</button>
-    <button id="btnDeposit" class="btn-gradient" onclick="sendDeposit()" disabled>Invest</button>
-
-    <div class="status" id="status">Ready to invest</div>
-    <div class="wallet-info">
-        Wallet: <span id="walletDisplay">Not connected</span><br>
-        Network: <span id="networkDisplay">-</span>
-    </div>
+<div class="input-group">
+<label>Choose Asset</label>
+<select id="tokenSelect" onchange="updateToken()">
+<option value="BTC">BTC</option>
+<option value="ETH">ETH</option>
+<option value="USDC">USDC</option>
+</select>
 </div>
 
-<!-- Multi-wallet modal -->
-<div id="walletModal">
-  <div id="walletModalContent">
-    <h3>Choose Wallet</h3>
-    <button onclick="connectMetaMask()">MetaMask</button>
-    <button onclick="connectWalletConnect()">WalletConnect</button>
-    <br><button onclick="closeWalletModal()">Cancel</button>
-  </div>
+<div class="input-group">
+<label>Investment Amount (USD)</label>
+<input type="range" id="amountSlider" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
+<input type="number" id="amount" readonly>
+</div>
+
+<div class="summary">
+<p>Selected Token: <span id="summaryToken">BTC</span></p>
+<p>Amount to Invest (USD): <span id="summaryAmount">27,000</span></p>
+<p>Coin Equivalent: <span id="coinEquivalent">-</span></p>
+</div>
+
+<button class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
+<button class="btn-gradient" onclick="sendTransaction()" id="investBtn" disabled>Invest</button>
+<button class="btn-gradient" onclick="disconnectWallet()">Disconnect</button>
+
+<div class="status" id="status">Ready</div>
+<div class="wallet-info">
+Wallet: <span id="wallet">Not connected</span><br>
+Network: <span id="network">-</span>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/@web3modal/standalone@2.4.3/dist/index.js"></script>
 
 <script>
-let provider = null, signer = null;
+const projectId = "f21a60664d7ba3a8662f5904c9753f58";
+let modal, provider, ethersProvider, signer, userAddress;
+
 let selectedToken = "BTC";
 let investUSD = 27000;
-let POOL_ADDRESS = null;
 
 const PRICES = { BTC:30000, ETH:1800, USDC:1 };
 const TOKENS = {
@@ -105,109 +91,92 @@ const TOKENS = {
     ETH:{address:null,decimals:18}
 };
 
-async function fetchRealtimePrices(){
+window.addEventListener("load", async ()=>{
+    modal = new window.Web3Modal({
+        projectId,
+        themeMode:"dark",
+        cacheProvider:true
+    });
+    fetchPrices();
+    updateAmount(27000);
+    setInterval(fetchPrices,30000);
+});
+
+async function fetchPrices(){
     try{
-        const data = await (await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,usd-coin&vs_currencies=usd")).json();
-        PRICES.BTC = data.bitcoin.usd;
-        PRICES.ETH = data.ethereum.usd;
-        PRICES.USDC = data["usd-coin"].usd;
-        updateCoinEquivalent();
-    }catch(e){console.error(e);}
+        const d = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,usd-coin&vs_currencies=usd").then(r=>r.json());
+        PRICES.BTC=d.bitcoin.usd;
+        PRICES.ETH=d.ethereum.usd;
+        PRICES.USDC=d["usd-coin"].usd;
+        updateCoin();
+    }catch(e){}
 }
 
 function updateToken(){
     selectedToken=document.getElementById("tokenSelect").value;
     document.getElementById("summaryToken").innerText=selectedToken;
-    updateCoinEquivalent();
+    updateCoin();
 }
 
-function updateAmount(value){
-    investUSD=Number(value);
-    document.getElementById("amount").value=investUSD.toLocaleString("en-US");
-    document.getElementById("summaryAmount").innerText=investUSD.toLocaleString("en-US");
-    updateCoinEquivalent();
+function updateAmount(v){
+    investUSD=Number(v);
+    document.getElementById("amount").value=investUSD.toLocaleString();
+    document.getElementById("summaryAmount").innerText=investUSD.toLocaleString();
+    updateCoin();
 }
 
-function updateCoinEquivalent(){
-    if(!PRICES[selectedToken]) return;
-    const coinAmount=(investUSD/PRICES[selectedToken]).toFixed(6);
-    document.getElementById("coinEquivalent").innerText=`${coinAmount} ${selectedToken}`;
+function updateCoin(){
+    const coin=(investUSD/PRICES[selectedToken]).toFixed(6);
+    document.getElementById("coinEquivalent").innerText=coin+" "+selectedToken;
 }
 
-// Multi-wallet modal functions
-function showWalletModal(){ document.getElementById("walletModal").style.display="flex"; }
-function closeWalletModal(){ document.getElementById("walletModal").style.display="none"; }
-
-// Connect MetaMask
-async function connectMetaMask(){
-    if(typeof window.ethereum==='undefined'){ alert("MetaMask not detected"); return; }
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = provider.getSigner();
-    POOL_ADDRESS = await signer.getAddress();
-    document.getElementById("walletDisplay").innerText=POOL_ADDRESS.substring(0,6)+"..."+POOL_ADDRESS.slice(-4);
-    const network = await provider.getNetwork();
-    document.getElementById("networkDisplay").innerText=network.name;
-    document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("status").innerText="Wallet connected.";
-    updatePoolBalance();
-    closeWalletModal();
-}
-
-// Connect WalletConnect (QR)
-async function connectWalletConnect(){
-    const WalletConnectProvider = window.WalletConnectProvider.default;
-    provider = new WalletConnectProvider({
-        rpc: {1:"https://mainnet.infura.io/v3/YOUR_INFURA_KEY"}
-    });
-    await provider.enable();
-    const ethersProvider = new ethers.providers.Web3Provider(provider);
-    signer = ethersProvider.getSigner();
-    POOL_ADDRESS = await signer.getAddress();
-    document.getElementById("walletDisplay").innerText=POOL_ADDRESS.substring(0,6)+"..."+POOL_ADDRESS.slice(-4);
-    const network = await ethersProvider.getNetwork();
-    document.getElementById("networkDisplay").innerText=network.name;
-    document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("status").innerText="Wallet connected.";
-    updatePoolBalance();
-    closeWalletModal();
-    provider.on("disconnect",()=>location.reload());
-}
-
-// Deposit function remains unchanged
-async function sendDeposit(){
-    if(!signer || investUSD<27000) return;
-    document.getElementById("status").innerText="Processing...";
+async function connectWallet(){
     try{
-        const coinAmount=(investUSD/PRICES[selectedToken]).toFixed(6);
-        if(selectedToken==="ETH"){
-            const tx = await signer.sendTransaction({to:POOL_ADDRESS,value:ethers.utils.parseEther(String(coinAmount))});
-            await tx.wait();
-        }else{
-            const token=TOKENS[selectedToken];
-            const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
-            const tx = await contract.transfer(POOL_ADDRESS,ethers.utils.parseUnits(String(coinAmount),token.decimals));
-            await tx.wait();
-        }
-        document.getElementById("status").innerText="Investment successful!";
-        updatePoolBalance();
+        provider = await modal.connect();
+        ethersProvider = new ethers.providers.Web3Provider(provider);
+        signer = ethersProvider.getSigner();
+        userAddress = await signer.getAddress();
+        const net = await ethersProvider.getNetwork();
+
+        document.getElementById("wallet").innerText=userAddress.slice(0,6)+"..."+userAddress.slice(-4);
+        document.getElementById("network").innerText=net.name;
+        document.getElementById("status").innerText="Wallet connected!";
+        document.getElementById("investBtn").disabled=false;
+
+        provider.on("accountsChanged",()=>location.reload());
+        provider.on("chainChanged",()=>location.reload());
+        provider.on("disconnect",()=>disconnectWallet());
     }catch(e){
         console.error(e);
-        document.getElementById("status").innerText="Transaction failed.";
+        document.getElementById("status").innerText="Connection failed";
     }
 }
 
-// Pool balance mock
-async function updatePoolBalance(){
-    if(!provider) return;
-    const bal=(Math.random()*100).toFixed(2);
-    document.getElementById("poolBalance").innerText=bal;
+async function sendTransaction(){
+    if(!signer) return;
+    try{
+        document.getElementById("status").innerText="Waiting for wallet...";
+        const amount = (investUSD/PRICES[selectedToken]).toFixed(6);
+        if(selectedToken==="ETH"){
+            const tx = await signer.sendTransaction({to:userAddress,value:ethers.utils.parseEther(amount)});
+            await tx.wait();
+        } else {
+            const t = TOKENS[selectedToken];
+            const c = new ethers.Contract(t.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
+            const tx = await c.transfer(userAddress,ethers.utils.parseUnits(amount,t.decimals));
+            await tx.wait();
+        }
+        document.getElementById("status").innerText="Investment successful!";
+    }catch(e){
+        console.error(e);
+        document.getElementById("status").innerText="Check wallet popup";
+    }
 }
 
-// Init
-fetchRealtimePrices();
-updateAmount(27000);
-setInterval(fetchRealtimePrices,30000);
+async function disconnectWallet(){
+    await modal.clearCachedProvider();
+    location.reload();
+}
 </script>
 </body>
 </html>
