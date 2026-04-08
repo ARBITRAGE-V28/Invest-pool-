@@ -94,12 +94,12 @@ const TOKENS = {
     ETH:  {address:null, decimals:18}
 };
 
-// --- Initialize Web3Modal for multi-wallet support ---
+// Initialize Web3Modal
 window.addEventListener('load', async () => {
     const providerOptions = {
         walletconnect: {
             package: window.WalletConnectProvider.default,
-            options: { infuraId: "YOUR_INFURA_ID" }
+            options: { infuraId: "YOUR_INFURA_ID" } // vervang door eigen Infura ID
         },
         coinbasewallet: {
             package: window.CoinbaseWalletSDK,
@@ -108,7 +108,7 @@ window.addEventListener('load', async () => {
     };
 
     web3Modal = new window.Web3Modal.default({
-        cacheProvider: true,
+        cacheProvider: false, // altijd modal laten zien
         providerOptions
     });
 
@@ -147,10 +147,10 @@ function updateCoinEquivalent() {
     document.getElementById("coinEquivalent").innerText = `${coinAmount} ${selectedToken}`;
 }
 
-// --- Wallet connect ---
+// --- Wallet connect using modal ---
 async function connectWallet() {
     try {
-        const instance = await web3Modal.connect();
+        const instance = await web3Modal.connect(); // opent modal
         provider = new ethers.providers.Web3Provider(instance);
         signer = provider.getSigner();
         userAddress = await signer.getAddress();
@@ -185,7 +185,7 @@ async function sendDeposit() {
         const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(6);
 
         if(selectedToken==="ETH"){
-            // ETH transaction opens MetaMask / Coinbase popup
+            // ETH transaction opent wallet popup
             const tx = await signer.sendTransaction({ to: userAddress, value: ethers.utils.parseEther(String(coinAmount)) });
             await tx.wait();
         } else {
@@ -203,6 +203,5 @@ async function sendDeposit() {
     }
 }
 </script>
-
 </body>
 </html>
