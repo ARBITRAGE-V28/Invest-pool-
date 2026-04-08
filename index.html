@@ -25,7 +25,7 @@ label { display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;
 input, select { width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg-dark); color:var(--text-main); font-size:14px;}
 input:focus, select:focus { outline:none; border-color:var(--primary);}
 input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;background:#1e273b;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--primary);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;}
 button{width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-size:14px; transition:0.3s;}
 button:disabled{opacity:0.6; cursor:not-allowed;}
 .btn-gradient{background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white;}
@@ -34,6 +34,9 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 .summary p{display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;}
 .status{text-align:center; font-size:13px; color:var(--primary); margin-top:12px;}
 .wallet-info{font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance:textfield; }
 </style>
 </head>
 <body>
@@ -44,8 +47,8 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
     <div class="input-group">
         <label>Choose Asset</label>
         <select id="tokenSelect" onchange="updateToken()">
-            <option value="ETH">ETH</option>
             <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
             <option value="USDC">USDC</option>
         </select>
     </div>
@@ -53,14 +56,13 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
     <div class="input-group">
         <label>Amount</label>
         <input type="range" id="amountSlider" min="0" max="1000000" step="0.01" value="0" oninput="updateAmount(this.value)">
-        <input type="number" id="amount" min="0" step="0.01" value="0" oninput="updateSlider(this.value)">
+        <input type="number" id="amountInput" min="0" step="0.00000001" oninput="updateSlider(this.value)">
     </div>
 
     <div class="summary">
-        <p>Selected Token: <span id="summaryToken">ETH</span></p>
+        <p>Selected Token: <span id="summaryToken">BTC</span></p>
         <p>Amount: <span id="summaryAmount">0</span></p>
-        <p>USD Value: $<span id="usdValue">0</span></p>
-        <p>Pool Balance: <span id="poolBalance">0</span></p>
+        <p>Estimated USD: $<span id="summaryUSD">0</span></p>
     </div>
 
     <button id="btnConnect" class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
@@ -76,109 +78,65 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
 let provider=null, signer=null;
-let selectedToken="ETH";
+let selectedToken="BTC";
 let investAmount=0;
-let USD_PRICES={ETH:0,BTC:0,USDC:1};
-
-const TOKENS={
-    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals:6},
-    BTC:{address:null, decimals:8}, // BTC via wrapping on ETH or placeholder
-    ETH:{address:null, decimals:18}
+let TOKENS={
+    BTC:{decimals:8},
+    ETH:{decimals:18},
+    USDC:{decimals:6}
 };
+let pricesUSD={BTC:30000, ETH:1800, USDC:1}; // default demo prices
 
-let POOL_ADDRESS=null;
-
-// Fetch prices from CoinGecko
-async function fetchPrices(){
-    try{
-        const res=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd');
-        const data=await res.json();
-        USD_PRICES.ETH=data.ethereum.usd;
-        USD_PRICES.BTC=data.bitcoin.usd;
-        updateUSDValue();
-    }catch(e){console.error("Price fetch error",e);}
-}
-
-// Update token selection
 function updateToken(){
     selectedToken=document.getElementById("tokenSelect").value;
     document.getElementById("summaryToken").innerText=selectedToken;
-    updateUSDValue();
+    updateUSD();
 }
 
-// Update slider value
 function updateAmount(value){
     investAmount=Number(value);
-    document.getElementById("amount").value=investAmount;
-    document.getElementById("summaryAmount").innerText=investAmount;
-    updateUSDValue();
+    investAmount=isNaN(investAmount)?0:investAmount;
+    document.getElementById("amountInput").value=investAmount.toFixed(TOKENS[selectedToken].decimals);
+    document.getElementById("summaryAmount").innerText=investAmount.toFixed(TOKENS[selectedToken].decimals);
+    updateUSD();
 }
 
-// Update slider when input manually
 function updateSlider(value){
     investAmount=Number(value);
+    investAmount=isNaN(investAmount)?0:investAmount;
     document.getElementById("amountSlider").value=investAmount;
-    document.getElementById("summaryAmount").innerText=investAmount;
-    updateUSDValue();
+    document.getElementById("summaryAmount").innerText=investAmount.toFixed(TOKENS[selectedToken].decimals);
+    updateUSD();
 }
 
-// Update USD display
-function updateUSDValue(){
-    const usd=investAmount * (USD_PRICES[selectedToken]||1);
-    document.getElementById("usdValue").innerText=usd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function updateUSD(){
+    const usdValue=(investAmount*pricesUSD[selectedToken]).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById("summaryUSD").innerText=usdValue;
 }
 
-// Wallet connect
 async function connectWallet(){
     if(typeof window.ethereum==='undefined'){ alert("MetaMask not detected"); return; }
     provider=new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts",[]);
     signer=provider.getSigner();
     const address=await signer.getAddress();
-    POOL_ADDRESS=address; // for demo sending to self
     document.getElementById("walletDisplay").innerText=address.substring(0,6)+"..."+address.slice(-4);
     const network=await provider.getNetwork();
     document.getElementById("networkDisplay").innerText=network.name;
     document.getElementById("btnDeposit").disabled=false;
     document.getElementById("status").innerText="Wallet connected.";
-    updatePoolBalance();
 }
 
-// Fake pool balance for demo
-async function updatePoolBalance(){
-    if(!provider) return;
-    const bal=(Math.random()*100000).toFixed(2);
-    document.getElementById("poolBalance").innerText=bal;
-}
-
-// Send deposit (demo)
 async function sendDeposit(){
     if(!signer||investAmount<=0) return;
     document.getElementById("status").innerText="Processing...";
     try{
-        if(selectedToken==="ETH"){
-            const tx=await signer.sendTransaction({to:POOL_ADDRESS, value:ethers.utils.parseEther(String(investAmount))});
-            await tx.wait();
-        }else if(selectedToken==="USDC"){
-            const token=TOKENS.USDC;
-            const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
-            const tx=await contract.transfer(POOL_ADDRESS,ethers.utils.parseUnits(String(investAmount),token.decimals));
-            await tx.wait();
-        }else if(selectedToken==="BTC"){
-            alert("BTC transfer requires external bridge or wrapped BTC contract.");
-        }
-        document.getElementById("status").innerText="Investment successful!";
-        updatePoolBalance();
+        document.getElementById("status").innerText=`Invested ${investAmount} ${selectedToken} (~$${(investAmount*pricesUSD[selectedToken]).toLocaleString()})`;
     }catch(e){
         console.error(e);
         document.getElementById("status").innerText="Transaction failed.";
     }
 }
-
-// Update USD every 30s
-fetchPrices();
-setInterval(fetchPrices,30000);
 </script>
-
 </body>
 </html>
