@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Investment Dashboard</title>
+<title>Pro Crypto Investment</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -24,10 +24,10 @@ h2{text-align:center;margin-bottom:24px;color:var(--primary);}
 label{display:block;margin-bottom:6px;color:var(--dim);font-weight:600;font-size:13px;}
 input, select{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;}
 input:focus, select:focus{outline:none;border-color:var(--primary);}
-input[type=range]{-webkit-appearance:none;width:100%;height:14px;border-radius:7px;background:#1e273b;cursor:pointer;overflow:hidden;}
+input[type=range]{-webkit-appearance:none;width:100%;height:14px;border-radius:7px;background:#1e273b;cursor:pointer;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--secondary);border:2px solid var(--primary);box-shadow:0 3px 8px rgba(0,0,0,0.5);cursor:pointer;transition: transform 0.2s, background 0.2s;}
 input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.2);background:var(--primary);}
-input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--secondary);border:2px solid var(--primary);cursor:pointer;transition: transform 0.2s, background 0.2s;}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--secondary);border:2px solid var(--primary);}
 input[type=range]:hover::-moz-range-thumb{transform:scale(1.2);background:var(--primary);}
 button{width:100%;padding:14px;margin-top:12px;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;transition:0.3s;}
 button:disabled{opacity:0.6;cursor:not-allowed;}
@@ -37,14 +37,13 @@ button:disabled{opacity:0.6;cursor:not-allowed;}
 .summary p{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;}
 .status{text-align:center;font-size:13px;color:var(--primary);margin-top:12px;}
 .wallet-info{font-size:11px;color:var(--dim);text-align:center;margin-top:8px;}
-#sliderTooltip{position:absolute;color:var(--primary);font-weight:700;pointer-events:none;transition:opacity 0.2s;}
+#sliderTooltip{position:absolute;top:-28px;transform:translateX(-50%);color:var(--primary);font-weight:700;pointer-events:none;transition:opacity 0.2s;}
 .range-track{position:relative;height:14px;border-radius:7px;background:#1e273b;}
 .range-fill{position:absolute;height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:7px;width:0;}
 .usd-display{font-size:12px;color:var(--dim);margin-top:4px;text-align:right;}
 </style>
 </head>
 <body>
-
 <div class="container">
 <h2>Pro Crypto Investment</h2>
 
@@ -86,11 +85,9 @@ Network: <span id="networkDisplay">-</span>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
-// Wallet
 let provider=null, signer=null, POOL_ADDRESS=null;
 let selectedToken="ETH", investAmount=0;
 
-// Realistic max slider per token
 const TOKENS={
   ETH:{decimals:18,max:100,usd:1800,address:null},
   USDC:{decimals:6,max:10000000,usd:1,address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
@@ -113,11 +110,12 @@ function updateToken(){
 }
 
 function syncSliderInput(val){
-  const dec=TOKENS[selectedToken].decimals;
-  investAmount=parseFloat(parseFloat(val).toFixed(dec));
+  const t=TOKENS[selectedToken];
+  investAmount=parseFloat(parseFloat(val).toFixed(t.decimals));
   document.getElementById("amountInput").value=investAmount;
-  document.getElementById("summaryAmount").innerText=formatCrypto(investAmount,dec);
-  document.getElementById("usdEquivalent").innerText=formatCrypto(investAmount*TOKENS[selectedToken].usd,2);
+  document.getElementById("summaryAmount").innerText=formatCrypto(investAmount,t.decimals);
+  const usd=investAmount*t.usd;
+  document.getElementById("usdEquivalent").innerText=formatCrypto(usd,2);
   updateTooltip();
   updateRangeFill();
 }
@@ -142,8 +140,8 @@ function updateTooltip(){
   const slider=document.getElementById("amountSlider");
   const tooltip=document.getElementById("sliderTooltip");
   const percent=(slider.value-slider.min)/(slider.max-slider.min);
-  tooltip.innerText=investAmount;
-  tooltip.style.left=`calc(${percent*100}% - 20px)`;
+  tooltip.innerText=formatCrypto(investAmount,TOKENS[selectedToken].decimals);
+  tooltip.style.left=`${percent*100}%`;
 }
 
 function updateRangeFill(){
@@ -202,6 +200,5 @@ updateToken();
 updateTooltip();
 updateRangeFill();
 </script>
-
 </body>
 </html>
