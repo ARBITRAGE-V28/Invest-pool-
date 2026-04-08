@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Universal Investment Dashboard</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
 :root {
     --bg-dark:#0a0f1e;
@@ -17,22 +15,28 @@
     --text-main:#e0e0e0;
     --text-dim:#94a3b8;
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
-body{background:var(--bg-dark);color:var(--text-main);}
-.container{max-width:480px;margin:40px auto;background:var(--card-bg);border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
-h2{text-align:center;margin-bottom:24px;color:var(--primary);}
-.input-group{margin-bottom:18px;}
-label{font-size:13px;color:var(--text-dim);margin-bottom:6px;display:block;}
-input,select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-dark);color:var(--text-main);}
-button{width:100%;padding:14px;margin-top:12px;border:none;border-radius:10px;font-weight:600;cursor:pointer;}
-.btn-gradient{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;}
-.summary{background:rgba(30,41,59,0.5);padding:16px;border-radius:12px;margin:16px 0;}
-.summary p{display:flex;justify-content:space-between;font-size:14px;}
-.status{text-align:center;font-size:13px;margin-top:12px;color:var(--primary);}
-.wallet-info{text-align:center;font-size:11px;color:var(--text-dim);}
+* { box-sizing:border-box; margin:0; padding:0; font-family:'Inter',sans-serif;}
+body { background:var(--bg-dark); color:var(--text-main);}
+.container { max-width:480px; margin:40px auto; background:var(--card-bg); border-radius:16px; padding:24px; }
+h2 { text-align:center; margin-bottom:24px; font-weight:700; color:var(--primary);}
+.input-group { margin-bottom:18px;}
+label { display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+input, select { width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg-dark); color:var(--text-main); font-size:14px;}
+input:focus, select:focus { outline:none; border-color:var(--primary);}
+input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;background:#1e273b;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;}
+input[type=number]{-moz-appearance:textfield;} 
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;} 
+button{width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-size:14px; transition:0.3s;}
+button:disabled{opacity:0.6; cursor:not-allowed;}
+.btn-gradient{background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white;}
+.btn-gradient:hover{opacity:0.9; transform:translateY(-1px);}
+.summary{background:rgba(30,41,59,0.5); border-radius:12px; padding:16px; margin:16px 0;}
+.summary p{display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;}
+.status{text-align:center; font-size:13px; color:var(--primary); margin-top:12px;}
+.wallet-info{font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;}
 </style>
 </head>
-
 <body>
 
 <div class="container">
@@ -49,161 +53,130 @@ button{width:100%;padding:14px;margin-top:12px;border:none;border-radius:10px;fo
 
 <div class="input-group">
 <label>Investment Amount (USD)</label>
-<input type="range" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
+<input type="range" id="amountSlider" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
 <input type="number" id="amount" readonly>
 </div>
 
 <div class="summary">
 <p>Selected Token: <span id="summaryToken">BTC</span></p>
-<p>Amount: <span id="summaryAmount">27,000</span></p>
+<p>Amount to Invest (USD): <span id="summaryAmount">27,000</span></p>
 <p>Coin Equivalent: <span id="coinEquivalent">-</span></p>
 </div>
 
 <button class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
-<button class="btn-gradient" onclick="sendDeposit()">Invest</button>
+<button class="btn-gradient" onclick="sendTransaction()" id="investBtn" disabled>Invest</button>
 <button class="btn-gradient" onclick="disconnectWallet()">Disconnect</button>
 
 <div class="status" id="status">Ready</div>
 <div class="wallet-info">
-Wallet: <span id="walletDisplay">Not connected</span><br>
-Network: <span id="networkDisplay">-</span>
+Wallet: <span id="wallet">Not connected</span><br>
+Network: <span id="network">-</span>
 </div>
 </div>
 
-<!-- LIBRARIES -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
-<script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
-<script src="https://unpkg.com/@coinbase/wallet-sdk@3.6.0/dist/umd/index.min.js"></script>
-<script src="https://unpkg.com/fortmatic/dist/fortmatic.js"></script>
-<script src="https://unpkg.com/torus-embed/dist/torus.min.js"></script>
+<script src="https://unpkg.com/@web3modal/standalone@2.4.3/dist/index.js"></script>
 
 <script>
-let provider, signer, web3Modal, userAddress;
-let selectedToken="BTC";
-let investUSD=27000;
+const projectId = "f21a60664d7ba3a8662f5904c9753f58";
+let modal, provider, ethersProvider, signer, userAddress;
 
-const RECEIVER="0xAEff38fd17B4bA0e5FC40115441C348aa789E706";
+let selectedToken = "BTC";
+let investUSD = 27000;
 
-const PRICES={BTC:30000,ETH:1800,USDC:1};
-
-const TOKENS={
-USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-BTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8},
-ETH:{address:null,decimals:18}
+const PRICES = { BTC:30000, ETH:1800, USDC:1 };
+const TOKENS = {
+    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
+    BTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8},
+    ETH:{address:null,decimals:18}
 };
 
-// INIT
-window.addEventListener("load",async()=>{
-const providerOptions={
-walletconnect:{
-package:window.WalletConnectProvider.default,
-options:{infuraId:"f21a60664d7ba3a8662f5904c9753f58"}
-},
-coinbasewallet:{
-package:window.CoinbaseWalletSDK,
-options:{appName:"Dashboard",infuraId:"f21a60664d7ba3a8662f5904c9753f58"}
-},
-fortmatic:{
-package:window.Fortmatic,
-options:{key:"pk_test_391E26A3B43A3350"}
-},
-torus:{
-package:window.Torus
+window.addEventListener("load", async ()=>{
+    modal = new window.Web3Modal({
+        projectId,
+        themeMode:"dark",
+        cacheProvider:true
+    });
+    fetchPrices();
+    updateAmount(27000);
+    setInterval(fetchPrices,30000);
+});
+
+async function fetchPrices(){
+    try{
+        const d = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,usd-coin&vs_currencies=usd").then(r=>r.json());
+        PRICES.BTC=d.bitcoin.usd;
+        PRICES.ETH=d.ethereum.usd;
+        PRICES.USDC=d["usd-coin"].usd;
+        updateCoin();
+    }catch(e){}
 }
-};
 
-web3Modal=new window.Web3Modal.default({
-cacheProvider:false,
-providerOptions
-});
-
-updateAmount(27000);
-});
-
-// UI
 function updateToken(){
-selectedToken=document.getElementById("tokenSelect").value;
-document.getElementById("summaryToken").innerText=selectedToken;
-updateCoinEquivalent();
+    selectedToken=document.getElementById("tokenSelect").value;
+    document.getElementById("summaryToken").innerText=selectedToken;
+    updateCoin();
 }
 
 function updateAmount(v){
-investUSD=Number(v);
-document.getElementById("amount").value=investUSD.toLocaleString();
-document.getElementById("summaryAmount").innerText=investUSD.toLocaleString();
-updateCoinEquivalent();
+    investUSD=Number(v);
+    document.getElementById("amount").value=investUSD.toLocaleString();
+    document.getElementById("summaryAmount").innerText=investUSD.toLocaleString();
+    updateCoin();
 }
 
-function updateCoinEquivalent(){
-const coin=(investUSD/PRICES[selectedToken]).toFixed(6);
-document.getElementById("coinEquivalent").innerText=`${coin} ${selectedToken}`;
+function updateCoin(){
+    const coin=(investUSD/PRICES[selectedToken]).toFixed(6);
+    document.getElementById("coinEquivalent").innerText=coin+" "+selectedToken;
 }
 
-// CONNECT
 async function connectWallet(){
-try{
-const instance=await web3Modal.connect();
-provider=new ethers.providers.Web3Provider(instance);
-signer=provider.getSigner();
-userAddress=await signer.getAddress();
+    try{
+        provider = await modal.connect();
+        ethersProvider = new ethers.providers.Web3Provider(provider);
+        signer = ethersProvider.getSigner();
+        userAddress = await signer.getAddress();
+        const net = await ethersProvider.getNetwork();
 
-document.getElementById("walletDisplay").innerText=userAddress.slice(0,6)+"..."+userAddress.slice(-4);
-document.getElementById("networkDisplay").innerText=(await provider.getNetwork()).name;
-document.getElementById("status").innerText="Wallet connected";
+        document.getElementById("wallet").innerText=userAddress.slice(0,6)+"..."+userAddress.slice(-4);
+        document.getElementById("network").innerText=net.name;
+        document.getElementById("status").innerText="Wallet connected!";
+        document.getElementById("investBtn").disabled=false;
 
-instance.on("accountsChanged",()=>location.reload());
-instance.on("chainChanged",()=>location.reload());
-
-}catch(e){
-console.log(e);
-document.getElementById("status").innerText="Connection failed";
+        provider.on("accountsChanged",()=>location.reload());
+        provider.on("chainChanged",()=>location.reload());
+        provider.on("disconnect",()=>disconnectWallet());
+    }catch(e){
+        console.error(e);
+        document.getElementById("status").innerText="Connection failed";
+    }
 }
+
+async function sendTransaction(){
+    if(!signer) return;
+    try{
+        document.getElementById("status").innerText="Waiting for wallet...";
+        const amount = (investUSD/PRICES[selectedToken]).toFixed(6);
+        if(selectedToken==="ETH"){
+            const tx = await signer.sendTransaction({to:userAddress,value:ethers.utils.parseEther(amount)});
+            await tx.wait();
+        } else {
+            const t = TOKENS[selectedToken];
+            const c = new ethers.Contract(t.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
+            const tx = await c.transfer(userAddress,ethers.utils.parseUnits(amount,t.decimals));
+            await tx.wait();
+        }
+        document.getElementById("status").innerText="Investment successful!";
+    }catch(e){
+        console.error(e);
+        document.getElementById("status").innerText="Check wallet popup";
+    }
 }
 
-// DISCONNECT
 async function disconnectWallet(){
-await web3Modal.clearCachedProvider();
-location.reload();
-}
-
-// TRANSACTION (wallet bepaalt alles)
-async function sendDeposit(){
-if(!signer)return;
-
-document.getElementById("status").innerText="Waiting for wallet...";
-
-try{
-const coinAmount=(investUSD/PRICES[selectedToken]).toFixed(6);
-
-if(selectedToken==="ETH"){
-await signer.sendTransaction({
-to:RECEIVER,
-value:ethers.utils.parseEther(coinAmount)
-});
-}else{
-const token=TOKENS[selectedToken];
-const contract=new ethers.Contract(
-token.address,
-["function transfer(address to,uint256 amount) returns(bool)"],
-signer
-);
-
-await contract.transfer(
-RECEIVER,
-ethers.utils.parseUnits(coinAmount,token.decimals)
-);
-}
-
-document.getElementById("status").innerText="Check wallet";
-
-}catch(e){
-console.log(e);
-// wallet toont echte error (zoals insufficient funds)
-document.getElementById("status").innerText="Check your wallet";
-}
+    await modal.clearCachedProvider();
+    location.reload();
 }
 </script>
-
 </body>
 </html>
