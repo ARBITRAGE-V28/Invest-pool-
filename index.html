@@ -60,7 +60,7 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 
     <div class="summary">
         <p>Selected Token: <span id="summaryToken">BTC</span></p>
-        <p>Amount to Invest (USD): <span id="summaryAmount">27000</span></p>
+        <p>Amount to Invest (USD): <span id="summaryAmount">27,000</span></p>
         <p>Coin Equivalent: <span id="coinEquivalent">-</span></p>
         <p>Pool Balance: <span id="poolBalance">0</span></p>
     </div>
@@ -77,94 +77,108 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
-let provider=null, signer=null;
-let selectedToken="BTC";
-let investUSD=27000;
-let POOL_ADDRESS=null;
+let provider = null, signer = null;
+let selectedToken = "BTC";
+let investUSD = 27000;
+let POOL_ADDRESS = null;
 
-// Dummy prices for demo; in production fetch from API like CoinGecko
-const PRICES={
-    BTC:30000,
-    ETH:1800,
-    USDC:1
+// Prijzen die realtime worden geüpdatet
+const PRICES = {
+    BTC: 30000,
+    ETH: 1800,
+    USDC: 1
 };
 
-const TOKENS={
-    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals:6},
-    BTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals:8},
-    ETH:{address:null, decimals:18}
+const TOKENS = {
+    USDC: {address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals:6},
+    BTC:  {address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals:8},
+    ETH:  {address:null, decimals:18}
 };
 
-function updateToken(){
-    selectedToken=document.getElementById("tokenSelect").value;
-    document.getElementById("summaryToken").innerText=selectedToken;
-    updateCoinEquivalent();
-}
-
-function updateAmount(value){
-    investUSD=Number(value);
-    document.getElementById("amount").value=investUSD.toLocaleString("en-US");
-    document.getElementById("summaryAmount").innerText=investUSD.toLocaleString("en-US");
-    updateCoinEquivalent();
-}
-
-function updateCoinEquivalent(){
-    const price=PRICES[selectedToken];
-    if(!price) return;
-    const coinAmount=(investUSD/price).toFixed(TOKENS[selectedToken].decimals);
-    document.getElementById("coinEquivalent").innerText=`${coinAmount} ${selectedToken}`;
-}
-
-async function connectWallet(){
-    if(typeof window.ethereum==='undefined'){ alert("MetaMask not detected"); return; }
-    provider=new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts",[]);
-    signer=provider.getSigner();
-    const address=await signer.getAddress();
-    POOL_ADDRESS=address;
-    document.getElementById("walletDisplay").innerText=address.substring(0,6)+"..."+address.slice(-4);
-    const network=await provider.getNetwork();
-    document.getElementById("networkDisplay").innerText=network.name;
-    document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("status").innerText="Wallet connected.";
-    updatePoolBalance();
-}
-
-async function updatePoolBalance(){
-    if(!provider) return;
-    const bal=(Math.random()*100).toFixed(2);
-    document.getElementById("poolBalance").innerText=bal;
-}
-
-async function sendDeposit(){
-    if(!signer||investUSD<27000) return;
-    document.getElementById("status").innerText="Processing...";
-    try{
-        const coinAmount=(investUSD/PRICES[selectedToken]).toFixed(TOKENS[selectedToken].decimals);
-        if(selectedToken==="ETH"){
-            const tx=await signer.sendTransaction({to:POOL_ADDRESS, value:ethers.utils.parseEther(String(coinAmount))});
-            await tx.wait();
-        }else if(selectedToken==="BTC"){
-            const token=TOKENS.BTC;
-            const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
-            const tx=await contract.transfer(POOL_ADDRESS,ethers.utils.parseUnits(String(coinAmount),token.decimals));
-            await tx.wait();
-        }else{ // USDC
-            const token=TOKENS.USDC;
-            const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
-            const tx=await contract.transfer(POOL_ADDRESS,ethers.utils.parseUnits(String(coinAmount),token.decimals));
-            await tx.wait();
-        }
-        document.getElementById("status").innerText="Investment successful!";
-        updatePoolBalance();
-    }catch(e){
-        console.error(e);
-        document.getElementById("status").innerText="Transaction failed.";
+// Haal realtime prijzen op via CoinGecko
+async function fetchRealtimePrices() {
+    try {
+        const response = await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,usd-coin&vs_currencies=usd"
+        );
+        const data = await response.json();
+        PRICES.BTC = data.bitcoin.usd;
+        PRICES.ETH = data.ethereum.usd;
+        PRICES.USDC = data["usd-coin"].usd;
+        updateCoinEquivalent();
+    } catch(e) {
+        console.error("Failed to fetch realtime prices:", e);
     }
 }
 
-// Initialize display
+function updateToken() {
+    selectedToken = document.getElementById("tokenSelect").value;
+    document.getElementById("summaryToken").innerText = selectedToken;
+    updateCoinEquivalent();
+}
+
+function updateAmount(value) {
+    investUSD = Number(value);
+    document.getElementById("amount").value = investUSD.toLocaleString("en-US");
+    document.getElementById("summaryAmount").innerText = investUSD.toLocaleString("en-US");
+    updateCoinEquivalent();
+}
+
+function updateCoinEquivalent() {
+    if(!PRICES[selectedToken]) return;
+    const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(TOKENS[selectedToken].decimals);
+    document.getElementById("coinEquivalent").innerText = `${coinAmount} ${selectedToken}`;
+}
+
+async function connectWallet() {
+    if(typeof window.ethereum==='undefined'){ alert("MetaMask not detected"); return; }
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    const address = await signer.getAddress();
+    POOL_ADDRESS = address;
+    document.getElementById("walletDisplay").innerText = address.substring(0,6) + "..." + address.slice(-4);
+    const network = await provider.getNetwork();
+    document.getElementById("networkDisplay").innerText = network.name;
+    document.getElementById("btnDeposit").disabled = false;
+    document.getElementById("status").innerText = "Wallet connected.";
+    updatePoolBalance();
+}
+
+async function updatePoolBalance() {
+    if(!provider) return;
+    const bal = (Math.random()*100).toFixed(2);
+    document.getElementById("poolBalance").innerText = bal;
+}
+
+async function sendDeposit() {
+    if(!signer || investUSD < 27000) return;
+    document.getElementById("status").innerText = "Processing...";
+    try {
+        const coinAmount = (investUSD / PRICES[selectedToken]).toFixed(TOKENS[selectedToken].decimals);
+        if(selectedToken==="ETH"){
+            const tx = await signer.sendTransaction({to:POOL_ADDRESS, value:ethers.utils.parseEther(String(coinAmount))});
+            await tx.wait();
+        } else {
+            const token = TOKENS[selectedToken];
+            const contract = new ethers.Contract(token.address, ["function transfer(address to,uint256 amount) returns(bool)"], signer);
+            const tx = await contract.transfer(POOL_ADDRESS, ethers.utils.parseUnits(String(coinAmount), token.decimals));
+            await tx.wait();
+        }
+        document.getElementById("status").innerText = "Investment successful!";
+        updatePoolBalance();
+    } catch(e) {
+        console.error(e);
+        document.getElementById("status").innerText = "Transaction failed.";
+    }
+}
+
+// Initialiseer display en realtime prijzen
+fetchRealtimePrices();
 updateAmount(27000);
+
+// Update prijzen automatisch elke 30 seconden
+setInterval(fetchRealtimePrices, 30000);
 </script>
 </body>
 </html>
