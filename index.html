@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Crypto Investment Dashboard</title>
+<title>Crypto Investment Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -57,14 +57,14 @@ button:disabled{opacity:0.6;cursor:not-allowed;}
   </select>
 </div>
 
-<div class="input-group">
+<div class="input-group" style="position:relative;">
   <label>Amount</label>
-  <div class="range-track">
+  <div style="position:relative;">
     <div class="range-fill" id="rangeFill"></div>
     <input type="range" id="amountSlider" oninput="syncSliderInput(this.value)">
+    <div id="sliderTooltip"></div>
   </div>
-  <input type="text" id="amountInput" placeholder="0" oninput="syncInputSlider(this.value)">
-  <div id="sliderTooltip"></div>
+  <input type="text" id="amountInput" placeholder="0" oninput="syncInputSlider(this.value)" style="margin-top:6px;">
   <div class="usd-display">≈ $<span id="usdEquivalent">0</span></div>
 </div>
 
@@ -99,7 +99,6 @@ const TOKENS={
 
 function formatCrypto(value,decimals){ return Number(value).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:decimals}); }
 
-// Update token selection
 function updateToken(){
   selectedToken=document.getElementById("tokenSelect").value;
   const t=TOKENS[selectedToken];
@@ -113,7 +112,6 @@ function updateToken(){
   updatePoolBalance();
 }
 
-// Slider -> Input
 function syncSliderInput(val){
   const dec=TOKENS[selectedToken].decimals;
   investAmount=parseFloat(parseFloat(val).toFixed(dec));
@@ -124,7 +122,6 @@ function syncSliderInput(val){
   updateRangeFill();
 }
 
-// Input -> Slider
 function syncInputSlider(val){
   val=val.replace(/[^\d.]/g,'');
   if(val.split('.').length>2) val=val.split('.').slice(0,2).join('.');
@@ -141,19 +138,14 @@ function syncInputSlider(val){
   updateRangeFill();
 }
 
-// Tooltip
 function updateTooltip(){
   const slider=document.getElementById("amountSlider");
   const tooltip=document.getElementById("sliderTooltip");
-  const rect=slider.getBoundingClientRect();
   const percent=(slider.value-slider.min)/(slider.max-slider.min);
-  tooltip.innerText=formatCrypto(slider.value,TOKENS[selectedToken].decimals);
-  tooltip.style.left=(percent*slider.offsetWidth-20)+"px";
-  tooltip.style.top="-28px";
-  tooltip.style.opacity=1;
+  tooltip.innerText=investAmount;
+  tooltip.style.left=`calc(${percent*100}% - 20px)`;
 }
 
-// Range fill
 function updateRangeFill(){
   const slider=document.getElementById("amountSlider");
   const fill=document.getElementById("rangeFill");
