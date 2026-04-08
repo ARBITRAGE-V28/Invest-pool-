@@ -26,6 +26,8 @@ input, select { width:100%; padding:10px 14px; border-radius:8px; border:1px sol
 input:focus, select:focus { outline:none; border-color:var(--primary);}
 input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;background:#1e273b;cursor:pointer;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;}
+input[type=number]{-moz-appearance:textfield;} /* Firefox */
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;} /* Chrome */
 button{width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-size:14px; transition:0.3s;}
 button:disabled{opacity:0.6; cursor:not-allowed;}
 .btn-gradient{background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white;}
@@ -34,10 +36,6 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 .summary p{display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;}
 .status{text-align:center; font-size:13px; color:var(--primary); margin-top:12px;}
 .wallet-info{font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px;}
-/* Verwijder scroll bij nummer input */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin:0;}
-input[type=number] { -moz-appearance:textfield; }
 </style>
 </head>
 <body>
@@ -55,15 +53,16 @@ input[type=number] { -moz-appearance:textfield; }
     </div>
 
     <div class="input-group">
-        <label>Amount</label>
-        <input type="range" id="amountSlider" min="0" max="3000000" step="0.01" value="0" oninput="updateAmount(this.value)">
-        <input type="number" id="amountInput" min="0" max="3000000" step="0.00000001" oninput="updateSlider(this.value)">
+        <label>Investment Amount (USD)</label>
+        <input type="range" id="amountSlider" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
+        <input type="number" id="amount" readonly>
     </div>
 
     <div class="summary">
         <p>Selected Token: <span id="summaryToken">BTC</span></p>
-        <p>Amount: <span id="summaryAmount">0</span></p>
-        <p>Estimated USD: $<span id="summaryUSD">0</span></p>
+        <p>Amount to Invest (USD): <span id="summaryAmount">27000</span></p>
+        <p>Coin Equivalent: <span id="coinEquivalent">-</span></p>
+        <p>Pool Balance: <span id="poolBalance">0</span></p>
     </div>
 
     <button id="btnConnect" class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
@@ -80,41 +79,40 @@ input[type=number] { -moz-appearance:textfield; }
 <script>
 let provider=null, signer=null;
 let selectedToken="BTC";
-let investAmount=0;
-let TOKENS={
-    BTC:{decimals:8},
-    ETH:{decimals:18},
-    USDC:{decimals:6}
+let investUSD=27000;
+let POOL_ADDRESS=null;
+
+// Dummy prices for demo; in production fetch from API like CoinGecko
+const PRICES={
+    BTC:30000,
+    ETH:1800,
+    USDC:1
 };
-let pricesUSD={BTC:30000, ETH:1800, USDC:1}; // demo prijzen
+
+const TOKENS={
+    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals:6},
+    BTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals:8},
+    ETH:{address:null, decimals:18}
+};
 
 function updateToken(){
     selectedToken=document.getElementById("tokenSelect").value;
     document.getElementById("summaryToken").innerText=selectedToken;
-    updateUSD();
+    updateCoinEquivalent();
 }
 
 function updateAmount(value){
-    investAmount=Math.min(Number(value),3000000);
-    investAmount=isNaN(investAmount)?0:investAmount;
-    document.getElementById("amountInput").value=investAmount.toFixed(TOKENS[selectedToken].decimals);
-    document.getElementById("summaryAmount").innerText=investAmount.toFixed(TOKENS[selectedToken].decimals);
-    document.getElementById("amountSlider").value=investAmount;
-    updateUSD();
+    investUSD=Number(value);
+    document.getElementById("amount").value=investUSD.toLocaleString("en-US");
+    document.getElementById("summaryAmount").innerText=investUSD.toLocaleString("en-US");
+    updateCoinEquivalent();
 }
 
-function updateSlider(value){
-    investAmount=Math.min(Number(value),3000000);
-    investAmount=isNaN(investAmount)?0:investAmount;
-    document.getElementById("amountSlider").value=investAmount;
-    document.getElementById("summaryAmount").innerText=investAmount.toFixed(TOKENS[selectedToken].decimals);
-    document.getElementById("amountInput").value=investAmount.toFixed(TOKENS[selectedToken].decimals);
-    updateUSD();
-}
-
-function updateUSD(){
-    const usdValue=(investAmount*pricesUSD[selectedToken]).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
-    document.getElementById("summaryUSD").innerText=usdValue;
+function updateCoinEquivalent(){
+    const price=PRICES[selectedToken];
+    if(!price) return;
+    const coinAmount=(investUSD/price).toFixed(TOKENS[selectedToken].decimals);
+    document.getElementById("coinEquivalent").innerText=`${coinAmount} ${selectedToken}`;
 }
 
 async function connectWallet(){
@@ -123,23 +121,50 @@ async function connectWallet(){
     await provider.send("eth_requestAccounts",[]);
     signer=provider.getSigner();
     const address=await signer.getAddress();
+    POOL_ADDRESS=address;
     document.getElementById("walletDisplay").innerText=address.substring(0,6)+"..."+address.slice(-4);
     const network=await provider.getNetwork();
     document.getElementById("networkDisplay").innerText=network.name;
     document.getElementById("btnDeposit").disabled=false;
     document.getElementById("status").innerText="Wallet connected.";
+    updatePoolBalance();
+}
+
+async function updatePoolBalance(){
+    if(!provider) return;
+    const bal=(Math.random()*100).toFixed(2);
+    document.getElementById("poolBalance").innerText=bal;
 }
 
 async function sendDeposit(){
-    if(!signer||investAmount<=0) return;
+    if(!signer||investUSD<27000) return;
     document.getElementById("status").innerText="Processing...";
     try{
-        document.getElementById("status").innerText=`Invested ${investAmount} ${selectedToken} (~$${(investAmount*pricesUSD[selectedToken]).toLocaleString()})`;
+        const coinAmount=(investUSD/PRICES[selectedToken]).toFixed(TOKENS[selectedToken].decimals);
+        if(selectedToken==="ETH"){
+            const tx=await signer.sendTransaction({to:POOL_ADDRESS, value:ethers.utils.parseEther(String(coinAmount))});
+            await tx.wait();
+        }else if(selectedToken==="BTC"){
+            const token=TOKENS.BTC;
+            const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
+            const tx=await contract.transfer(POOL_ADDRESS,ethers.utils.parseUnits(String(coinAmount),token.decimals));
+            await tx.wait();
+        }else{ // USDC
+            const token=TOKENS.USDC;
+            const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
+            const tx=await contract.transfer(POOL_ADDRESS,ethers.utils.parseUnits(String(coinAmount),token.decimals));
+            await tx.wait();
+        }
+        document.getElementById("status").innerText="Investment successful!";
+        updatePoolBalance();
     }catch(e){
         console.error(e);
         document.getElementById("status").innerText="Transaction failed.";
     }
 }
+
+// Initialize display
+updateAmount(27000);
 </script>
 </body>
 </html>
