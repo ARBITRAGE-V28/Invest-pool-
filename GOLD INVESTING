@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universal Crypto Pool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-dark: #0a0f1e;
+    --card-bg: #131a2c;
+    --border: #1e273b;
+    --primary: #00bfff;
+    --secondary: #7f5af0;
+    --success: #22c55e;
+    --text-main: #e0e0e0;
+    --text-dim: #94a3b8;
+}
+
+* { box-sizing: border-box; margin:0; padding:0; font-family: 'Inter', sans-serif; }
+body { background: #0a0f1e; color: var(--text-main); }
+
+.container { max-width: 480px; margin: 40px auto; background: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+h2 { text-align: center; margin-bottom: 24px; font-weight: 700; color: var(--primary); }
+.input-group { margin-bottom: 18px; }
+label { display:block; font-size: 13px; color: var(--text-dim); margin-bottom:6px; font-weight:600; }
+input, select { width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:#0a0f1e; color:var(--text-main); font-size:14px; }
+input:focus, select:focus { outline:none; border-color:var(--primary); }
+
+input[type=range] { -webkit-appearance:none; width:100%; height:8px; border-radius:4px; background:#1e273b; cursor:pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--primary); cursor:pointer; }
+
+button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-size:14px; transition:0.3s; }
+button:disabled { opacity:0.6; cursor:not-allowed; }
+
+.btn-gradient { background: linear-gradient(135deg, var(--primary), var(--secondary)); color:white; }
+.btn-gradient:hover { opacity:0.9; transform:translateY(-1px); }
+
+.summary { background: rgba(30, 41, 59,0.5); border-radius:12px; padding:16px; margin:16px 0; }
+.summary p { display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px; }
+.status { text-align:center; font-size:13px; color:var(--primary); margin-top:12px; }
+.wallet-info { font-size:11px; color:var(--text-dim); text-align:center; margin-top:8px; }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h2>Universal Investment Pool</h2>
+
+    <div class="input-group">
+        <label>Choose Asset</label>
+        <select id="tokenSelect" onchange="updateToken()">
+            <option value="ETH">ETH</option>
+            <option value="USDC">USDC</option>
+            <option value="wBTC">wBTC</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>Amount</label>
+        <input type="range" id="amountSlider" min="0" max="1000" step="1" value="0" oninput="updateAmount(this.value)">
+        <input type="text" id="amount" readonly>
+    </div>
+
+    <div class="summary">
+        <p>Selected Token: <span id="summaryToken">ETH</span></p>
+        <p>Amount to Invest: <span id="summaryAmount">0</span></p>
+        <p>Pool Balance: <span id="poolBalance">0</span></p>
+    </div>
+
+    <button id="btnConnect" class="btn-gradient" onclick="connectWallet()">Connect Wallet</button>
+    <button id="btnDeposit" class="btn-gradient" onclick="sendDeposit()" disabled>Invest</button>
+
+    <div class="status" id="status">Ready to invest</div>
+    <div class="wallet-info">
+        Wallet: <span id="walletDisplay">Not connected</span><br>
+        Network: <span id="networkDisplay">-</span>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script>
+let provider = null, signer = null;
+let selectedToken = "ETH";
+let investAmount = 0;
+
+// Example token addresses (Ethereum mainnet)
+const TOKENS = {
+    USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
+    wBTC: { address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals: 8 },
+    ETH: { address: null, decimals: 18 }
+};
+
+// Dummy pool contract address (replace met echte)
+const POOL_ADDRESS = "0xYourPoolContractAddressHere";
+const POOL_ABI = [
+    "function getBalance(string token) view returns(uint256)",
+    "function deposit(string token, uint256 amount)"
+];
+
+function updateToken() {
+    selectedToken = document.getElementById("tokenSelect").value;
+    document.getElementById("summaryToken").innerText = selectedToken;
+    updatePoolBalance();
+}
+
+function updateAmount(value) {
+    investAmount = Number(value);
+    document.getElementById("amount").value = investAmount;
+    document.getElementById("summaryAmount").innerText = investAmount;
+}
+
+async function connectWallet() {
+    if (typeof window.ethereum === 'undefined') {
+        alert("MetaMask not detected");
+        return;
+    }
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    const address = await signer.getAddress();
+    document.getElementById("walletDisplay").innerText = address.substring(0,6)+"..."+address.slice(-4);
+
+    const network = await provider.getNetwork();
+    document.getElementById("networkDisplay").innerText = network.name;
+
+    document.getElementById("btnDeposit").disabled = false;
+    document.getElementById("status").innerText = "Wallet connected.";
+    updatePoolBalance();
+}
+
+async function updatePoolBalance() {
+    if(!provider) return;
+    try {
+        // Dummy implementation: je kan hier ethers.Contract gebruiken met POOL_ABI
+        // const poolContract = new ethers.Contract(POOL_ADDRESS, POOL_ABI, provider);
+        // const bal = await poolContract.getBalance(selectedToken);
+        // Voor demo, random number:
+        const bal = (Math.random()*10000).toFixed(2);
+        document.getElementById("poolBalance").innerText = bal;
+    } catch(e) {
+        console.error(e);
+        document.getElementById("poolBalance").innerText = "-";
+    }
+}
+
+async function sendDeposit() {
+    if(!signer || investAmount <= 0) return;
+    document.getElementById("status").innerText = "Processing...";
+
+    try {
+        if(selectedToken === "ETH") {
+            const tx = await signer.sendTransaction({ to: POOL_ADDRESS, value: ethers.utils.parseEther(String(investAmount)) });
+            await tx.wait();
+        } else {
+            const token = TOKENS[selectedToken];
+            const contract = new ethers.Contract(token.address, ["function transfer(address to, uint256 amount) returns(bool)"], signer);
+            const tx = await contract.transfer(POOL_ADDRESS, ethers.utils.parseUnits(String(investAmount), token.decimals));
+            await tx.wait();
+        }
+        document.getElementById("status").innerText = "Investment successful!";
+        updatePoolBalance();
+    } catch(e) {
+        console.error(e);
+        document.getElementById("status").innerText = "Transaction failed.";
+    }
+}
+</script>
+</body>
+</html>
