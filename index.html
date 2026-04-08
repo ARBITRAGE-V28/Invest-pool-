@@ -24,6 +24,9 @@ h2 { text-align:center; margin-bottom:24px; font-weight:700; color:var(--primary
 label { display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
 input, select { width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg-dark); color:var(--text-main); font-size:14px;}
 input:focus, select:focus { outline:none; border-color:var(--primary);}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+input[type=number] { -moz-appearance:textfield; }
 input[type=range]{
   -webkit-appearance:none;
   width:100%;
@@ -81,8 +84,8 @@ button:disabled{opacity:0.6; cursor:not-allowed;}
 
 <div class="input-group">
   <label>Amount</label>
-  <input type="range" id="amountSlider" min="0" max="10000000" step="1000" value="0" oninput="syncSliderInput(this.value)">
-  <input type="number" id="amount" min="0" max="10000000" step="1" value="0" oninput="syncInputSlider(this.value)">
+  <input type="range" id="amountSlider" min="0" max="10000000" step="0.00000001" value="0" oninput="syncSliderInput(this.value)">
+  <input type="number" id="amount" min="0" step="0.00000001" value="0" oninput="syncInputSlider(this.value)">
 </div>
 
 <div class="summary">
@@ -116,27 +119,33 @@ const TOKENS={
 
 let POOL_ADDRESS=null;
 
-// Update geselecteerde token
 function updateToken(){ 
   selectedToken=document.getElementById("tokenSelect").value; 
   document.getElementById("summaryToken").innerText=selectedToken;
+  const decimals = TOKENS[selectedToken].decimals;
+  document.getElementById("amountSlider").step = 1 / (10**decimals);
+  document.getElementById("amount").step = 1 / (10**decimals);
   updatePoolBalance();
 }
 
 // Slider -> input
 function syncSliderInput(value){
-  investAmount = Number(value);
-  document.getElementById("amount").value = investAmount.toFixed(0);
-  document.getElementById("summaryAmount").innerText = investAmount.toLocaleString();
+  const decimals = TOKENS[selectedToken].decimals;
+  investAmount = parseFloat(Number(value).toFixed(decimals));
+  document.getElementById("amount").value = investAmount;
+  document.getElementById("summaryAmount").innerText = investAmount.toLocaleString(undefined,{minimumFractionDigits:0, maximumFractionDigits:decimals});
   updateSliderGradient();
 }
 
 // Input -> slider
 function syncInputSlider(value){
-  investAmount = Number(value);
+  const decimals = TOKENS[selectedToken].decimals;
+  investAmount = parseFloat(value);
   if(isNaN(investAmount)||investAmount<0) investAmount=0;
+  investAmount = parseFloat(investAmount.toFixed(decimals));
   document.getElementById("amountSlider").value = investAmount;
-  document.getElementById("summaryAmount").innerText = investAmount.toLocaleString();
+  document.getElementById("amount").value = investAmount;
+  document.getElementById("summaryAmount").innerText = investAmount.toLocaleString(undefined,{minimumFractionDigits:0, maximumFractionDigits:decimals});
   updateSliderGradient();
 }
 
@@ -155,7 +164,7 @@ async function connectWallet(){
   await provider.send("eth_requestAccounts",[]);
   signer=provider.getSigner();
   const address=await signer.getAddress();
-  POOL_ADDRESS=address; // demo
+  POOL_ADDRESS=address;
   document.getElementById("walletDisplay").innerText=address.substring(0,6)+"..."+address.slice(-4);
   const network=await provider.getNetwork();
   document.getElementById("networkDisplay").innerText=network.name;
@@ -167,7 +176,7 @@ async function connectWallet(){
 // Simuleer pool balance
 async function updatePoolBalance(){
   if(!provider) return;
-  const bal=(Math.random()*1000000).toFixed(2);
+  const bal=(Math.random()*1000000).toFixed(TOKENS[selectedToken].decimals);
   document.getElementById("poolBalance").innerText=bal;
 }
 
@@ -182,11 +191,10 @@ async function sendDeposit(){
     }else{
       const token=TOKENS[selectedToken];
       if(selectedToken==="BTC"){ 
-        alert(`BTC demo: Simulated transaction of ${investAmount.toLocaleString()} BTC`); 
+        alert(`BTC demo: Simulated transaction of ${investAmount} BTC`); 
       } else {
         const contract=new ethers.Contract(token.address,["function transfer(address to,uint256 amount) returns(bool)"],signer);
-        const decimals = token.decimals;
-        const amountParsed = ethers.utils.parseUnits(String(investAmount), decimals);
+        const amountParsed = ethers.utils.parseUnits(String(investAmount), token.decimals);
         const tx=await contract.transfer(POOL_ADDRESS, amountParsed);
         await tx.wait();
       }
