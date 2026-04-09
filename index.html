@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Universal Investment Dashboard</title>
+<title>Investment Dashboard</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -40,9 +40,9 @@ button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;fo
 <div class="input-group">
 <label>Asset</label>
 <select id="tokenSelect" onchange="updateToken()">
-<option value="BTC">BTC</option>
 <option value="ETH">ETH</option>
 <option value="USDC">USDC</option>
+<option value="WBTC">WBTC</option>
 </select>
 </div>
 
@@ -53,14 +53,13 @@ button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;fo
 </div>
 
 <div class="summary">
-<p>Token: <span id="summaryToken">BTC</span></p>
+<p>Token: <span id="summaryToken">ETH</span></p>
 <p>USD: <span id="summaryAmount">27000</span></p>
 <p>Coins: <span id="coinEquivalent">-</span></p>
 </div>
 
-<button id="btnConnect" class="btn" onclick="connectWallet()">Connect Wallet</button>
+<button class="btn" onclick="connectWallet()">Connect Wallet</button>
 <button id="btnDeposit" class="btn" onclick="sendDeposit()" disabled>Invest</button>
-<button id="btnDisconnect" class="btn" onclick="disconnectWallet()" disabled>Disconnect</button>
 
 <div class="status" id="status">Ready</div>
 
@@ -68,27 +67,24 @@ button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;fo
 Wallet: <span id="walletDisplay">-</span><br>
 Network: <span id="networkDisplay">-</span>
 </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <script>
 let provider, signer;
-let selectedToken = "BTC";
+let selectedToken = "ETH";
 let investUSD = 27000;
 
 const RECEIVER = "0x000000000000000000000000000000000000dead";
 
-const PRICES = { BTC:30000, ETH:1800, USDC:1 };
+const PRICES = { ETH:1800, USDC:1, WBTC:30000 };
 
 const TOKENS = {
     USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-    BTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8},
-    ETH:{address:null,decimals:18}
+    WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
 };
 
-// UI updates
 function updateToken(){
     selectedToken=document.getElementById("tokenSelect").value;
     document.getElementById("summaryToken").innerText=selectedToken;
@@ -107,99 +103,74 @@ function updateCoin(){
     document.getElementById("coinEquivalent").innerText=coin+" "+selectedToken;
 }
 
-// CONNECT WALLET
+// CONNECT
 async function connectWallet(){
     if(!window.ethereum){
         alert("Install MetaMask");
         return;
     }
 
-    try{
-        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
+    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
 
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
 
-        if(chainId !== "0x1"){
-            await window.ethereum.request({
-                method:"wallet_switchEthereumChain",
-                params:[{chainId:"0x1"}]
-            });
-        }
-
-        const addr = await signer.getAddress();
-
-        document.getElementById("walletDisplay").innerText =
-            addr.slice(0,6)+"..."+addr.slice(-4);
-
-        document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
-
-        document.getElementById("btnDeposit").disabled=false;
-        document.getElementById("btnDisconnect").disabled=false;
-
-        document.getElementById("status").innerText="Connected";
-
-    }catch(err){
-        console.error(err);
-        document.getElementById("status").innerText="Connection failed";
+    if(chainId !== "0x1"){
+        await window.ethereum.request({
+            method:"wallet_switchEthereumChain",
+            params:[{chainId:"0x1"}]
+        });
     }
+
+    const addr = await signer.getAddress();
+
+    document.getElementById("walletDisplay").innerText =
+        addr.slice(0,6)+"..."+addr.slice(-4);
+
+    document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
+
+    document.getElementById("btnDeposit").disabled=false;
+    document.getElementById("status").innerText="Connected";
 }
 
-// DISCONNECT
-function disconnectWallet(){
-    provider=null;
-    signer=null;
-
-    document.getElementById("walletDisplay").innerText="-";
-    document.getElementById("networkDisplay").innerText="-";
-
-    document.getElementById("btnDeposit").disabled=true;
-    document.getElementById("btnDisconnect").disabled=true;
-
-    document.getElementById("status").innerText="Disconnected";
-}
-
-// SEND TRANSACTION (POPUP FIXED)
+// SEND TX (100% popup)
 async function sendDeposit(){
-    if(!signer){
-        document.getElementById("status").innerText="Connect wallet first";
-        return;
-    }
+    if(!signer) return;
 
     try{
         document.getElementById("status").innerText="Opening MetaMask...";
-
-        const rawAmount = investUSD / PRICES[selectedToken];
 
         let tx;
 
         if(selectedToken==="ETH"){
 
+            const ethAmount = (investUSD / PRICES.ETH).toString();
+
             tx = await signer.sendTransaction({
                 to: RECEIVER,
-                value: ethers.utils.parseEther(rawAmount.toString())
+                value: ethers.utils.parseEther(ethAmount)
             });
 
         } else {
 
-            const t = TOKENS[selectedToken];
+            const token = TOKENS[selectedToken];
 
-            const parsedAmount = ethers.utils.parseUnits(
-                rawAmount.toFixed(t.decimals),
-                t.decimals
-            );
+            const raw = investUSD / PRICES[selectedToken];
+
+            // 🔥 SAFE conversion
+            const safe = Number(raw).toFixed(token.decimals);
+
+            const parsed = ethers.utils.parseUnits(safe, token.decimals);
 
             const contract = new ethers.Contract(
-                t.address,
+                token.address,
                 ["function transfer(address to,uint256 amount) returns(bool)"],
                 signer
             );
 
-            tx = await contract.transfer(RECEIVER, parsedAmount);
+            tx = await contract.transfer(RECEIVER, parsed);
         }
-
-        // 👉 HIER komt altijd MetaMask popup
 
         document.getElementById("status").innerText="Waiting confirmation...";
         await tx.wait();
@@ -212,7 +183,7 @@ async function sendDeposit(){
         if(e.code === 4001){
             document.getElementById("status").innerText="User rejected ❌";
         } else {
-            document.getElementById("status").innerText="Error before wallet ⚠️";
+            document.getElementById("status").innerText="Pre-wallet error ⚠️";
         }
     }
 }
