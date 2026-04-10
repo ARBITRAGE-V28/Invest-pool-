@@ -75,7 +75,7 @@ body {
 .nav-value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; color: #fff; }
 .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; display: block; }
 
-/* --- INVESTMENT MODULE (YOUR SCRIPT) --- */
+/* --- INVESTMENT MODULE --- */
 .invest-module {
     background: rgba(0,0,0,0.3);
     padding: 20px;
@@ -194,6 +194,7 @@ input[type="number"], select {
 
                 <button class="btn btn-primary" onclick="connectWallet()">Connect Identity</button>
                 <button id="btnDeposit" class="btn" onclick="sendDeposit()" disabled>Execute Investment</button>
+                <button id="btnDisconnect" class="btn" onclick="disconnectWallet()" disabled>Disconnect</button>
                 
                 <div id="status" style="text-align:center; font-size:0.7rem; color:var(--accent); margin-bottom:10px;">Ready for uplink</div>
                 
@@ -255,39 +256,52 @@ function updateCoin(){
 }
 
 async function connectWallet(){
-    if(!window.ethereum){ alert("MetaMask not found"); return; }
+    if(!window.ethereum){ alert("Install MetaMask"); return; }
     provider = new ethers.providers.Web3Provider(window.ethereum, "any");
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
     const addr = await signer.getAddress();
     document.getElementById("walletDisplay").innerText = addr.slice(0,6)+"..."+addr.slice(-4);
-    document.getElementById("networkDisplay").innerText = "Sepolia / Mainnet";
+    document.getElementById("networkDisplay").innerText = "Ethereum Mainnet";
     document.getElementById("btnDeposit").disabled = false;
-    document.getElementById("status").innerText = "Uplink Secure";
+    document.getElementById("btnDisconnect").disabled = false;
+    document.getElementById("status").innerText = "Connected";
+}
+
+function disconnectWallet(){
+    provider = null;
+    signer = null;
+    document.getElementById("walletDisplay").innerText = "-";
+    document.getElementById("networkDisplay").innerText = "-";
+    document.getElementById("btnDeposit").disabled = true;
+    document.getElementById("btnDisconnect").disabled = true;
+    document.getElementById("status").innerText = "Disconnected";
 }
 
 async function sendDeposit(){
     if(!signer) return;
     try {
-        document.getElementById("status").innerText = "Confirm in Wallet...";
+        document.getElementById("status").innerText = "Opening MetaMask...";
         let tx;
         if(selectedToken === "ETH"){
             const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
             tx = await signer.sendTransaction({
                 to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount)
+                value: ethers.utils.parseEther(ethAmount),
+                gasLimit: 21000
             });
         } else {
             const token = TOKENS[selectedToken];
             const raw = investUSD / PRICES[selectedToken];
             const parsed = ethers.utils.parseUnits(raw.toFixed(token.decimals), token.decimals);
             const contract = new ethers.Contract(token.address, ["function transfer(address to,uint256 amount) returns(bool)"], signer);
-            tx = await contract.transfer(RECEIVER, parsed);
+            tx = await contract.transfer(RECEIVER, parsed, { gasLimit: 100000 });
         }
         await tx.wait();
-        document.getElementById("status").innerText = "Execution Success ✅";
+        document.getElementById("status").innerText = "Success ✅";
     } catch(e) {
-        document.getElementById("status").innerText = "Error in Uplink ⚠️";
+        console.error(e);
+        document.getElementById("status").innerText = e.code === 4001 ? "User rejected ❌" : "Transaction failed ⚠️";
     }
 }
 
