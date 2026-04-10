@@ -3,195 +3,238 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Investment Dashboard</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Aura Institutional Fund Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
 :root {
-    --bg-dark:#0a0f1e;
-    --card-bg:#131a2c;
-    --border:#1e273b;
-    --primary:#00bfff;
-    --secondary:#7f5af0;
-    --text-main:#e0e0e0;
-    --text-dim:#94a3b8;
+    --bg: #0a0f1d;
+    --panel: #111827;
+    --border: #1f2937;
+    --accent: #3b82f6; 
+    --accent-glow: rgba(59, 130, 246, 0.5);
+    --green: #10b981;
+    --red: #ef4444;
+    --text-main: #f3f4f6;
+    --text-dim: #9ca3af;
+    --font: 'JetBrains Mono', monospace;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-body{background:var(--bg-dark);color:var(--text-main);}
-
-.container{
-    max-width:480px;
-    margin:40px auto;
-    background:var(--card-bg);
-    border-radius:16px;
-    padding:24px;
+body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font);
+    padding: 20px;
+    display: flex;
+    justify-content: center;
 }
 
-h2{text-align:center;margin-bottom:24px;color:var(--primary);}
-
-.input-group{margin-bottom:18px;}
-
-label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;}
-
-input,select{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:1px solid var(--border);
-    background:var(--bg-dark);
-    color:white;
+/* --- MAIN TERMINAL --- */
+.terminal {
+    width: 100%;
+    max-width: 1300px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-button{
-    width:100%;
-    padding:14px;
-    margin-top:10px;
-    border:none;
-    border-radius:10px;
-    font-weight:600;
-    cursor:pointer;
+/* --- HEADER --- */
+.header {
+    padding: 15px 25px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.2);
 }
 
-.btn{
-    background:linear-gradient(135deg,var(--primary),var(--secondary));
-    color:white;
+.fund-identity { display: flex; align-items: center; gap: 15px; }
+.logo-box {
+    width: 35px; height: 35px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.2rem;
+    clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%);
+}
+.fund-name { letter-spacing: 1px; font-weight: 700; font-size: 0.9rem; }
+
+/* --- CONTENT GRID --- */
+.content-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 340px;
+    background: var(--border);
+    gap: 1px;
 }
 
-/* SUMMARY */
-.summary{
-    background:#1e293b;
-    padding:16px;
-    border-radius:10px;
-    margin:16px 0;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+.sub-panel { background: var(--panel); padding: 25px; display: flex; flex-direction: column; }
+
+/* --- METRICS --- */
+.nav-value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; color: #fff; }
+.label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; display: block; }
+
+/* --- INVESTMENT MODULE (YOUR SCRIPT) --- */
+.invest-module {
+    background: rgba(0,0,0,0.3);
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
 }
 
-.summary-row{
-    display:flex;
-    justify-content:space-between;
-    flex-wrap:wrap;
+input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; }
+input[type="number"], select {
+    width: 100%; padding: 8px; background: #000; border: 1px solid var(--border);
+    color: var(--accent); font-family: var(--font); font-size: 0.8rem; margin-bottom: 15px;
 }
 
-.summary-label{
-    color:var(--text-dim);
-    font-size:13px;
+.summary-box {
+    background: #0f172a; padding: 12px; border-radius: 4px; margin: 15px 0;
+    font-size: 0.75rem; border-left: 2px solid var(--accent);
 }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
 
-.summary-value{
-    font-weight:600;
+.btn {
+    width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); font-family: var(--font);
+    font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-size: 0.7rem;
 }
+.btn:hover:not(:disabled) { background: var(--accent); color: white; box-shadow: 0 0 15px var(--accent-glow); }
+.btn:disabled { border-color: #333; color: #333; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: white; }
 
-/* WALLET */
-.wallet-info{
-    background:#0f172a;
-    padding:12px;
-    border-radius:12px;
-    margin-top:12px;
-}
+.wallet-status { font-size: 0.6rem; color: var(--text-dim); margin-top: 10px; line-height: 1.5; }
 
-.status{
-    text-align:center;
-    margin-top:10px;
-    color:var(--primary);
+/* --- TABLES & GRAPHS --- */
+.asset-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+.asset-table th { text-align: left; color: var(--text-dim); padding-bottom: 10px; }
+.asset-table td { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+.graph-container { height: 100px; width: 100%; margin-top: auto; display: flex; align-items: flex-end; gap: 3px; }
+.bar { flex: 1; background: var(--accent); opacity: 0.5; transition: height 0.5s; }
+
+/* --- FOOTER --- */
+.footer-status {
+    padding: 10px 25px; font-size: 0.6rem; color: var(--text-dim);
+    display: flex; justify-content: space-between; background: rgba(0,0,0,0.4);
 }
+.status-live { display: flex; align-items: center; gap: 5px; color: var(--green); }
+.dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: blink 1.5s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="terminal">
+    <header class="header">
+        <div class="fund-identity">
+            <div class="logo-box">A</div>
+            <div class="fund-name">AURA ASSET MANAGEMENT <span style="color:var(--text-dim); font-weight:normal;">| CORE_TERMINAL_V2</span></div>
+        </div>
+        <div style="font-size: 0.7rem; color: var(--text-dim);">SYSTEM_TIME: <span id="clock">00:00:00</span></div>
+    </header>
 
-<h2>Investment Dashboard</h2>
+    <main class="content-grid">
+        <section class="sub-panel">
+            <span class="label">Total Fund NAV (USD)</span>
+            <div class="nav-value" id="total-nav">$12,482,102.00</div>
+            <div class="label" style="color: var(--green); margin-bottom: 30px;">Daily Performance: +1.24%</div>
+            
+            <span class="label">Fund Risk Profile</span>
+            <div style="font-size: 0.75rem; line-height: 2;">
+                <div style="display:flex; justify-content:space-between;"><span>Sharpe Ratio</span><span style="color:var(--accent)">2.84</span></div>
+                <div style="display:flex; justify-content:space-between;"><span>Volatility</span><span style="color:var(--accent)">4.12%</span></div>
+                <div style="display:flex; justify-content:space-between;"><span>Alpha (α)</span><span style="color:var(--green)">+0.85</span></div>
+            </div>
 
-<div class="input-group">
-<label>Asset</label>
-<select id="tokenSelect" onchange="updateToken()">
-<option value="ETH">ETH</option>
-<option value="USDC">USDC</option>
-<option value="WBTC">WBTC</option>
-</select>
-</div>
+            <div class="graph-container" id="vix-bars"></div>
+            <span class="label" style="margin-top:10px; text-align:center;">Real-time Momentum Scan</span>
+        </section>
 
-<div class="input-group">
-<label>Amount (USD)</label>
-<input type="range" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
-<input type="number" id="amount" readonly>
-</div>
+        <section class="sub-panel">
+            <span class="label">Institutional Execution Feed</span>
+            <table class="asset-table">
+                <thead>
+                    <tr>
+                        <th>TICKER</th>
+                        <th>POSITION</th>
+                        <th>MARKET_PRICE</th>
+                        <th>UNREALIZED_PL</th>
+                    </tr>
+                </thead>
+                <tbody id="asset-body"></tbody>
+            </table>
 
-<div class="summary">
-    <div class="summary-row">
-        <div class="summary-label">Token</div>
-        <div class="summary-value" id="summaryToken">ETH</div>
-    </div>
+            <span class="label" style="margin-top: 30px;">Recent Activity Logs</span>
+            <div id="log-entries" style="font-size: 0.6rem; line-height: 1.8; color: var(--text-dim);"></div>
+        </section>
 
-    <div class="summary-row">
-        <div class="summary-label">USD</div>
-        <div class="summary-value" id="summaryAmount">27000</div>
-    </div>
+        <section class="sub-panel" style="background: rgba(0,0,0,0.15);">
+            <span class="label">Deployment Portal</span>
+            
+            <div class="invest-module">
+                <label class="label">Target Asset</label>
+                <select id="tokenSelect" onchange="updateToken()">
+                    <option value="ETH">ETH (Native)</option>
+                    <option value="USDC">USDC (Stable)</option>
+                    <option value="WBTC">WBTC (Wrapped)</option>
+                </select>
 
-    <div class="summary-row">
-        <div class="summary-label">Coins</div>
-        <div class="summary-value" id="coinEquivalent">-</div>
-    </div>
-</div>
+                <label class="label">Allocation (USD)</label>
+                <input type="range" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
+                <input type="number" id="amount" readonly>
 
-<button class="btn" onclick="connectWallet()">Connect Wallet</button>
-<button id="btnDeposit" class="btn" onclick="sendDeposit()" disabled>Invest</button>
-<button id="btnDisconnect" class="btn" onclick="disconnectWallet()" disabled>Disconnect</button>
+                <div class="summary-box">
+                    <div class="summary-row"><span>Currency:</span><span id="summaryToken" style="color:white">ETH</span></div>
+                    <div class="summary-row"><span>USD Value:</span><span id="summaryAmount" style="color:white">27000</span></div>
+                    <div class="summary-row"><span>Est. Coins:</span><span id="coinEquivalent" style="color:var(--green)">-</span></div>
+                </div>
 
-<div class="status" id="status">Ready</div>
+                <button class="btn btn-primary" onclick="connectWallet()">Connect Identity</button>
+                <button id="btnDeposit" class="btn" onclick="sendDeposit()" disabled>Execute Investment</button>
+                
+                <div id="status" style="text-align:center; font-size:0.7rem; color:var(--accent); margin-bottom:10px;">Ready for uplink</div>
+                
+                <div class="wallet-status">
+                    ID: <span id="walletDisplay" style="color:white">-</span><br>
+                    NET: <span id="networkDisplay" style="color:white">-</span>
+                </div>
+            </div>
+        </section>
+    </main>
 
-<div class="wallet-info">
-Wallet: <span id="walletDisplay">-</span><br>
-Network: <span id="networkDisplay">-</span>
-</div>
-
+    <footer class="footer-status">
+        <div>CORE: BLK-ROCK_V2 // SECURITY: ENCRYPTED_AES_256 // NODES: SEPOLIA_TESTNET</div>
+        <div class="status-live"><div class="dot"></div>LIVE FEED ACTIVE</div>
+    </footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <script>
+// --- LOGIC FROM SCRIPT 1 (INVESTMENT) ---
 let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
-
-const PRICES = {
-    ETH: 1800,
-    USDC: 1,
-    WBTC: 30000
+const PRICES = { ETH: 1800, USDC: 1, WBTC: 30000 };
+const TOKENS = {
+    USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
+    WBTC: { address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals: 8 }
 };
+const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
-// 🔥 REALTIME PRICES (CoinGecko)
 async function fetchPrices(){
-    try{
-        const res = await fetch(
-            "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,usd-coin&vs_currencies=usd"
-        );
-
+    try {
+        const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,usd-coin&vs_currencies=usd");
         const data = await res.json();
-
         PRICES.ETH = data.ethereum.usd;
         PRICES.WBTC = data.bitcoin.usd;
         PRICES.USDC = data["usd-coin"].usd;
-
         updateCoin();
-
-    }catch(e){
-        console.error("Price fetch failed:", e);
-    }
+    } catch(e) { console.error("Price fetch failed", e); }
 }
-
-const TOKENS = {
-    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-    WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
-};
-
-const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
 function updateToken(){
     selectedToken = document.getElementById("tokenSelect").value;
@@ -202,114 +245,115 @@ function updateToken(){
 function updateAmount(v){
     investUSD = Number(v);
     document.getElementById("amount").value = investUSD;
-    document.getElementById("summaryAmount").innerText = investUSD;
+    document.getElementById("summaryAmount").innerText = investUSD.toLocaleString();
     updateCoin();
 }
 
 function updateCoin(){
     const coin = investUSD / PRICES[selectedToken];
-    document.getElementById("coinEquivalent").innerText =
-        coin.toFixed(6) + " " + selectedToken;
+    document.getElementById("coinEquivalent").innerText = coin.toFixed(6) + " " + selectedToken;
 }
 
-// CONNECT
 async function connectWallet(){
-    if(!window.ethereum){
-        alert("Install MetaMask");
-        return;
-    }
-
+    if(!window.ethereum){ alert("MetaMask not found"); return; }
     provider = new ethers.providers.Web3Provider(window.ethereum, "any");
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
-
     const addr = await signer.getAddress();
-
-    document.getElementById("walletDisplay").innerText =
-        addr.slice(0,6)+"..."+addr.slice(-4);
-
-    document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
-
-    document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("btnDisconnect").disabled=false;
-
-    document.getElementById("status").innerText="Connected";
+    document.getElementById("walletDisplay").innerText = addr.slice(0,6)+"..."+addr.slice(-4);
+    document.getElementById("networkDisplay").innerText = "Sepolia / Mainnet";
+    document.getElementById("btnDeposit").disabled = false;
+    document.getElementById("status").innerText = "Uplink Secure";
 }
 
-// DISCONNECT
-function disconnectWallet(){
-    provider = null;
-    signer = null;
-
-    document.getElementById("walletDisplay").innerText = "-";
-    document.getElementById("networkDisplay").innerText = "-";
-
-    document.getElementById("btnDeposit").disabled = true;
-    document.getElementById("btnDisconnect").disabled = true;
-
-    document.getElementById("status").innerText = "Disconnected";
-}
-
-// SEND TX
 async function sendDeposit(){
-
     if(!signer) return;
-
-    try{
-        document.getElementById("status").innerText="Opening MetaMask...";
-
+    try {
+        document.getElementById("status").innerText = "Confirm in Wallet...";
         let tx;
-
-        if(selectedToken==="ETH"){
-
+        if(selectedToken === "ETH"){
             const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
-
             tx = await signer.sendTransaction({
                 to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount),
-                gasLimit: 21000
+                value: ethers.utils.parseEther(ethAmount)
             });
-
         } else {
-
             const token = TOKENS[selectedToken];
-
             const raw = investUSD / PRICES[selectedToken];
-
-            const parsed = ethers.utils.parseUnits(
-                raw.toFixed(token.decimals),
-                token.decimals
-            );
-
-            const contract = new ethers.Contract(
-                token.address,
-                ["function transfer(address to,uint256 amount) returns(bool)"],
-                signer
-            );
-
-            tx = await contract.transfer(RECEIVER, parsed, {
-                gasLimit: 100000
-            });
+            const parsed = ethers.utils.parseUnits(raw.toFixed(token.decimals), token.decimals);
+            const contract = new ethers.Contract(token.address, ["function transfer(address to,uint256 amount) returns(bool)"], signer);
+            tx = await contract.transfer(RECEIVER, parsed);
         }
-
         await tx.wait();
-        document.getElementById("status").innerText="Success ✅";
-
-    }catch(e){
-        console.error(e);
-
-        document.getElementById("status").innerText =
-            e.code === 4001 ? "User rejected ❌" : "Transaction failed ⚠️";
+        document.getElementById("status").innerText = "Execution Success ✅";
+    } catch(e) {
+        document.getElementById("status").innerText = "Error in Uplink ⚠️";
     }
 }
 
-// INIT
+// --- LOGIC FROM SCRIPT 2 (DASHBOARD) ---
+const assets = [
+    { id: 'GOLD', name: 'XAU/USD', price: 2150.40, pos: '4,200 Oz' },
+    { id: 'OIL', name: 'WTI CRUDE', price: 78.12, pos: '12,500 Bbl' },
+    { id: 'SPX', name: 'S&P 500', price: 5120.25, pos: '840 Cont.' },
+    { id: 'BTC', name: 'BTC/USD', price: 68420.00, pos: '120 BTC' }
+];
+
+function initDashboard() {
+    const body = document.getElementById('asset-body');
+    assets.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b>${a.name}</b></td>
+            <td>${a.pos}</td>
+            <td id="price-${a.id}">$${a.price.toFixed(2)}</td>
+            <td id="pl-${a.id}" style="color:var(--green)">+$0.00</td>
+        `;
+        body.appendChild(tr);
+    });
+
+    const graph = document.getElementById('vix-bars');
+    for(let i=0; i<25; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = Math.random() * 100 + '%';
+        graph.appendChild(bar);
+    }
+}
+
+function updateDashboard() {
+    assets.forEach(a => {
+        const drift = (Math.random() - 0.5) * (a.price * 0.001);
+        a.price += drift;
+        const priceEl = document.getElementById(`price-${a.id}`);
+        if(priceEl) {
+            priceEl.innerText = `$${a.price.toFixed(2)}`;
+            priceEl.style.color = drift > 0 ? 'var(--green)' : 'var(--red)';
+        }
+    });
+    
+    document.getElementById('total-nav').innerText = `$${(12482102 + (Math.random() * 5000)).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    document.querySelectorAll('.bar').forEach(b => b.style.height = (20 + Math.random() * 80) + '%');
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+}
+
+function addLog() {
+    const logBox = document.getElementById('log-entries');
+    const logs = ['NODE_SYNC', 'ORDER_FILL', 'RISK_ADJ', 'PORTFOLIO_SENTIMENT'];
+    const div = document.createElement('div');
+    div.innerHTML = `<span style="color:var(--accent)">[${logs[Math.floor(Math.random()*logs.length)]}]</span> DATA_PACKET_RECEIVED`;
+    logBox.prepend(div);
+    if(logBox.children.length > 10) logBox.removeChild(logBox.lastChild);
+}
+
+// START EVERYTHING
+initDashboard();
 updateAmount(27000);
-
-// 🔥 START REALTIME UPDATES
 fetchPrices();
+setInterval(updateDashboard, 1000);
+setInterval(addLog, 3000);
 setInterval(fetchPrices, 30000);
-</script>
 
+</script>
 </body>
 </html>
