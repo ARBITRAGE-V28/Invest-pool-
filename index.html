@@ -18,8 +18,17 @@
     --text-dim:#94a3b8;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
-body{background:var(--bg-dark);color:var(--text-main);}
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background:var(--bg-dark);
+    color:var(--text-main);
+}
 
 .container{
     max-width:480px;
@@ -29,9 +38,15 @@ body{background:var(--bg-dark);color:var(--text-main);}
     padding:24px;
 }
 
-h2{text-align:center;margin-bottom:24px;color:var(--primary);}
+h2{
+    text-align:center;
+    margin-bottom:24px;
+    color:var(--primary);
+}
 
-.input-group{margin-bottom:18px;}
+.input-group{
+    margin-bottom:18px;
+}
 
 label{
     display:block;
@@ -72,19 +87,53 @@ button{
 .summary{
     background:#1e293b;
     padding:16px;
-    border-radius:10px;
+    border-radius:12px;
     margin:16px 0;
-    line-height:1.6;
 }
 
-.status{text-align:center;margin-top:10px;color:var(--primary);}
-.wallet-info{text-align:center;font-size:12px;margin-top:10px;color:var(--text-dim);}
+.row{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.row:last-child{
+    border-bottom:none;
+}
+
+.label{
+    font-size:12px;
+    color:var(--text-dim);
+}
+
+.value{
+    font-size:16px;
+    font-weight:600;
+    color:var(--text-main);
+    word-break:break-word;
+}
+
+.status{
+    text-align:center;
+    margin-top:10px;
+    color:var(--primary);
+}
+
+.wallet-info{
+    text-align:center;
+    font-size:12px;
+    margin-top:10px;
+    color:var(--text-dim);
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
 <h2>Investment Dashboard</h2>
 
 <div class="input-group">
@@ -104,9 +153,22 @@ oninput="updateAmount(this.value)">
 </div>
 
 <div class="summary">
-<div>Token: <span id="summaryToken">ETH</span></div>
-<div>USD: <span id="summaryAmount">27000</span></div>
-<div>Coins: <span id="coinEquivalent">-</span></div>
+
+  <div class="row">
+    <div class="label">Token</div>
+    <div class="value" id="summaryToken">ETH</div>
+  </div>
+
+  <div class="row">
+    <div class="label">USD</div>
+    <div class="value" id="summaryAmount">27000</div>
+  </div>
+
+  <div class="row">
+    <div class="label">Coins</div>
+    <div class="value" id="coinEquivalent">-</div>
+  </div>
+
 </div>
 
 <button class="btn" onclick="connectWallet()">Connect Wallet</button>
@@ -119,28 +181,42 @@ oninput="updateAmount(this.value)">
 Wallet: <span id="walletDisplay">-</span><br>
 Network: <span id="networkDisplay">-</span>
 </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <script>
+
 let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 
-let PRICES = { ETH: 1800, USDC: 1, WBTC: 30000 };
+// realtime prices
+let PRICES = {
+    ETH: 1800,
+    USDC: 1,
+    WBTC: 30000
+};
 
 const TOKENS = {
-    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-    WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
+    USDC: {
+        address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        decimals:6
+    },
+    WBTC: {
+        address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        decimals:8
+    }
 };
 
 const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
+// ================= REALTIME PRICES =================
 async function fetchPrices(){
     try{
         const res = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin&vs_currencies=usd"
+            "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin&vs_currencies=usd"
         );
         const data = await res.json();
 
@@ -148,14 +224,16 @@ async function fetchPrices(){
         PRICES.WBTC = data.bitcoin.usd;
 
         updateCoin();
+
     } catch(e){
-        console.log("price fetch failed", e);
+        console.log("price error", e);
     }
 }
 
 setInterval(fetchPrices, 15000);
 fetchPrices();
 
+// ================= UI =================
 function updateToken(){
     selectedToken = document.getElementById("tokenSelect").value;
     document.getElementById("summaryToken").innerText = selectedToken;
@@ -170,21 +248,33 @@ function updateAmount(v){
 }
 
 function updateCoin(){
+
     const price = PRICES[selectedToken];
-    const coin = (investUSD / price).toFixed(selectedToken==="WBTC"?8:6);
-    document.getElementById("coinEquivalent").innerText =
-        `${coin}\n${selectedToken}`;
+
+    let decimals = 6;
+    if(selectedToken === "WBTC") decimals = 8;
+    if(selectedToken === "ETH") decimals = 6;
+
+    const coins = (investUSD / price).toFixed(decimals);
+
+    document.getElementById("coinEquivalent").innerHTML =
+        `${coins} ${selectedToken}`;
 }
 
-// CONNECT
+// ================= WALLET =================
 async function connectWallet(){
-    if(!window.ethereum) return alert("Install MetaMask");
+
+    if(!window.ethereum){
+        alert("Install MetaMask");
+        return;
+    }
 
     provider = new ethers.providers.Web3Provider(window.ethereum, "any");
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
 
     const chainId = await window.ethereum.request({ method:'eth_chainId' });
+
     if(chainId !== "0x1"){
         await window.ethereum.request({
             method:"wallet_switchEthereumChain",
@@ -197,37 +287,41 @@ async function connectWallet(){
     document.getElementById("walletDisplay").innerText =
         addr.slice(0,6)+"..."+addr.slice(-4);
 
-    document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
+    document.getElementById("networkDisplay").innerText = "Ethereum Mainnet";
 
-    document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("status").innerText="Connected";
+    document.getElementById("btnDeposit").disabled = false;
+    document.getElementById("status").innerText = "Connected";
 }
 
 function disconnectWallet(){
     signer = null;
     provider = null;
 
-    document.getElementById("walletDisplay").innerText="-";
-    document.getElementById("networkDisplay").innerText="-";
-    document.getElementById("btnDeposit").disabled=true;
-    document.getElementById("status").innerText="Disconnected";
+    document.getElementById("walletDisplay").innerText = "-";
+    document.getElementById("networkDisplay").innerText = "-";
+    document.getElementById("btnDeposit").disabled = true;
+
+    document.getElementById("status").innerText = "Disconnected";
 }
 
-// SEND TX
+// ================= TX =================
 async function sendDeposit(){
+
     if(!signer) return;
 
     try{
-        document.getElementById("status").innerText="Opening MetaMask...";
+
+        document.getElementById("status").innerText = "Opening MetaMask...";
 
         let tx;
 
-        if(selectedToken==="ETH"){
-            const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
+        if(selectedToken === "ETH"){
+
+            const ethAmount = investUSD / PRICES.ETH;
 
             tx = await signer.sendTransaction({
                 to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount)
+                value: ethers.utils.parseEther(ethAmount.toFixed(18))
             });
 
         } else {
@@ -235,9 +329,10 @@ async function sendDeposit(){
             const token = TOKENS[selectedToken];
             const price = PRICES[selectedToken];
 
-            const raw = investUSD / price;
+            const amount = investUSD / price;
+
             const parsed = ethers.utils.parseUnits(
-                raw.toFixed(token.decimals),
+                amount.toFixed(token.decimals),
                 token.decimals
             );
 
@@ -250,18 +345,20 @@ async function sendDeposit(){
             tx = await contract.transfer(RECEIVER, parsed);
         }
 
-        document.getElementById("status").innerText="Waiting confirmation...";
+        document.getElementById("status").innerText = "Waiting confirmation...";
         await tx.wait();
 
-        document.getElementById("status").innerText="Success ✅";
+        document.getElementById("status").innerText = "Success ✅";
 
     } catch(e){
         console.error(e);
-        document.getElementById("status").innerText="Transaction failed ❌";
+        document.getElementById("status").innerText = "Transaction failed ❌";
     }
 }
 
+// init
 updateAmount(27000);
+
 </script>
 
 </body>
