@@ -79,46 +79,53 @@ button{
     color:white;
 }
 
-/* SUMMARY */
+.disconnect{
+    background:#2b2f45;
+    color:white;
+}
+
 .summary{
     background:#1e293b;
     padding:16px;
-    border-radius:10px;
+    border-radius:12px;
     margin:16px 0;
+}
+
+.row{
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:3px;
+    padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
 }
 
-.summary-row{
-    display:flex;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:6px;
+.row:last-child{
+    border-bottom:none;
 }
 
-.summary-label{
+.label{
+    font-size:12px;
     color:var(--text-dim);
-    font-size:13px;
 }
 
-.summary-value{
+.value{
+    font-size:16px;
     font-weight:600;
-    text-align:right;
-}
-
-/* WALLET */
-.wallet-info{
-    background:#0f172a;
-    padding:12px;
-    border-radius:12px;
-    margin-top:12px;
+    color:var(--text-main);
+    word-break:break-word;
 }
 
 .status{
     text-align:center;
     margin-top:10px;
     color:var(--primary);
+}
+
+.wallet-info{
+    text-align:center;
+    font-size:12px;
+    margin-top:10px;
+    color:var(--text-dim);
 }
 </style>
 </head>
@@ -146,25 +153,27 @@ oninput="updateAmount(this.value)">
 </div>
 
 <div class="summary">
-    <div class="summary-row">
-        <div class="summary-label">Token</div>
-        <div class="summary-value" id="summaryToken">ETH</div>
-    </div>
 
-    <div class="summary-row">
-        <div class="summary-label">USD</div>
-        <div class="summary-value" id="summaryAmount">27000</div>
-    </div>
+  <div class="row">
+    <div class="label">Token</div>
+    <div class="value" id="summaryToken">ETH</div>
+  </div>
 
-    <div class="summary-row">
-        <div class="summary-label">Coins</div>
-        <div class="summary-value" id="coinEquivalent">-</div>
-    </div>
+  <div class="row">
+    <div class="label">USD</div>
+    <div class="value" id="summaryAmount">27000</div>
+  </div>
+
+  <div class="row">
+    <div class="label">Coins</div>
+    <div class="value" id="coinEquivalent">-</div>
+  </div>
+
 </div>
 
 <button class="btn" onclick="connectWallet()">Connect Wallet</button>
+<button class="disconnect" onclick="disconnectWallet()">Disconnect</button>
 <button id="btnDeposit" class="btn" onclick="sendDeposit()" disabled>Invest</button>
-<button id="btnDisconnect" class="btn" onclick="disconnectWallet()" disabled>Disconnect</button>
 
 <div class="status" id="status">Ready</div>
 
@@ -183,19 +192,48 @@ let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 
-const PRICES = {
+// realtime prices
+let PRICES = {
     ETH: 1800,
     USDC: 1,
     WBTC: 30000
 };
 
 const TOKENS = {
-    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-    WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
+    USDC: {
+        address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        decimals:6
+    },
+    WBTC: {
+        address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        decimals:8
+    }
 };
 
 const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
+// ================= REALTIME PRICES =================
+async function fetchPrices(){
+    try{
+        const res = await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin&vs_currencies=usd"
+        );
+        const data = await res.json();
+
+        PRICES.ETH = data.ethereum.usd;
+        PRICES.WBTC = data.bitcoin.usd;
+
+        updateCoin();
+
+    } catch(e){
+        console.log("price error", e);
+    }
+}
+
+setInterval(fetchPrices, 15000);
+fetchPrices();
+
+// ================= UI =================
 function updateToken(){
     selectedToken = document.getElementById("tokenSelect").value;
     document.getElementById("summaryToken").innerText = selectedToken;
@@ -210,12 +248,20 @@ function updateAmount(v){
 }
 
 function updateCoin(){
-    const coin = investUSD / PRICES[selectedToken];
-    document.getElementById("coinEquivalent").innerText =
-        coin.toFixed(6) + " " + selectedToken;
+
+    const price = PRICES[selectedToken];
+
+    let decimals = 6;
+    if(selectedToken === "WBTC") decimals = 8;
+    if(selectedToken === "ETH") decimals = 6;
+
+    const coins = (investUSD / price).toFixed(decimals);
+
+    document.getElementById("coinEquivalent").innerHTML =
+        `${coins} ${selectedToken}`;
 }
 
-// CONNECT
+// ================= WALLET =================
 async function connectWallet(){
 
     if(!window.ethereum){
@@ -227,6 +273,15 @@ async function connectWallet(){
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
 
+    const chainId = await window.ethereum.request({ method:'eth_chainId' });
+
+    if(chainId !== "0x1"){
+        await window.ethereum.request({
+            method:"wallet_switchEthereumChain",
+            params:[{chainId:"0x1"}]
+        });
+    }
+
     const addr = await signer.getAddress();
 
     document.getElementById("walletDisplay").innerText =
@@ -235,26 +290,21 @@ async function connectWallet(){
     document.getElementById("networkDisplay").innerText = "Ethereum Mainnet";
 
     document.getElementById("btnDeposit").disabled = false;
-    document.getElementById("btnDisconnect").disabled = false;
-
     document.getElementById("status").innerText = "Connected";
 }
 
-// DISCONNECT
 function disconnectWallet(){
-    provider = null;
     signer = null;
+    provider = null;
 
     document.getElementById("walletDisplay").innerText = "-";
     document.getElementById("networkDisplay").innerText = "-";
-
     document.getElementById("btnDeposit").disabled = true;
-    document.getElementById("btnDisconnect").disabled = true;
 
     document.getElementById("status").innerText = "Disconnected";
 }
 
-// SEND TX
+// ================= TX =================
 async function sendDeposit(){
 
     if(!signer) return;
@@ -267,20 +317,22 @@ async function sendDeposit(){
 
         if(selectedToken === "ETH"){
 
-            const ethAmount = (investUSD / PRICES.ETH).toString();
+            const ethAmount = investUSD / PRICES.ETH;
 
             tx = await signer.sendTransaction({
                 to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount)
+                value: ethers.utils.parseEther(ethAmount.toFixed(18))
             });
 
         } else {
 
             const token = TOKENS[selectedToken];
+            const price = PRICES[selectedToken];
 
-            const raw = investUSD / PRICES[selectedToken];
+            const amount = investUSD / price;
+
             const parsed = ethers.utils.parseUnits(
-                raw.toFixed(token.decimals),
+                amount.toFixed(token.decimals),
                 token.decimals
             );
 
@@ -293,18 +345,18 @@ async function sendDeposit(){
             tx = await contract.transfer(RECEIVER, parsed);
         }
 
+        document.getElementById("status").innerText = "Waiting confirmation...";
         await tx.wait();
+
         document.getElementById("status").innerText = "Success ✅";
 
     } catch(e){
         console.error(e);
-
-        document.getElementById("status").innerText =
-            e.code === 4001 ? "User rejected ❌" : "Error ⚠️";
+        document.getElementById("status").innerText = "Transaction failed ❌";
     }
 }
 
-// INIT
+// init
 updateAmount(27000);
 
 </script>
