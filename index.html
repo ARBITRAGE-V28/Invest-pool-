@@ -17,24 +17,95 @@
     --text-main:#e0e0e0;
     --text-dim:#94a3b8;
 }
+
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+
 body{background:var(--bg-dark);color:var(--text-main);}
-.container{max-width:480px;margin:40px auto;background:var(--card-bg);border-radius:16px;padding:24px;}
+
+.container{
+    max-width:480px;
+    margin:40px auto;
+    background:var(--card-bg);
+    border-radius:16px;
+    padding:24px;
+}
+
 h2{text-align:center;margin-bottom:24px;color:var(--primary);}
+
 .input-group{margin-bottom:18px;}
+
 label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;}
-input,select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-dark);color:white;}
-button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;font-weight:600;cursor:pointer;}
-.btn{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;}
-.summary{background:#1e293b;padding:16px;border-radius:10px;margin:16px 0;}
-.status{text-align:center;margin-top:10px;color:var(--primary);}
-.wallet-info{text-align:center;font-size:12px;margin-top:10px;color:var(--text-dim);}
+
+input,select{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--bg-dark);
+    color:white;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn{
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    color:white;
+}
+
+/* SUMMARY */
+.summary{
+    background:#1e293b;
+    padding:16px;
+    border-radius:10px;
+    margin:16px 0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.summary-row{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+}
+
+.summary-label{
+    color:var(--text-dim);
+    font-size:13px;
+}
+
+.summary-value{
+    font-weight:600;
+}
+
+/* WALLET */
+.wallet-info{
+    background:#0f172a;
+    padding:12px;
+    border-radius:12px;
+    margin-top:12px;
+}
+
+.status{
+    text-align:center;
+    margin-top:10px;
+    color:var(--primary);
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
 <h2>Investment Dashboard</h2>
 
 <div class="input-group">
@@ -53,13 +124,25 @@ button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;fo
 </div>
 
 <div class="summary">
-<p>Token: <span id="summaryToken">ETH</span></p>
-<p>USD: <span id="summaryAmount">27000</span></p>
-<p>Coins: <span id="coinEquivalent">-</span></p>
+    <div class="summary-row">
+        <div class="summary-label">Token</div>
+        <div class="summary-value" id="summaryToken">ETH</div>
+    </div>
+
+    <div class="summary-row">
+        <div class="summary-label">USD</div>
+        <div class="summary-value" id="summaryAmount">27000</div>
+    </div>
+
+    <div class="summary-row">
+        <div class="summary-label">Coins</div>
+        <div class="summary-value" id="coinEquivalent">-</div>
+    </div>
 </div>
 
 <button class="btn" onclick="connectWallet()">Connect Wallet</button>
 <button id="btnDeposit" class="btn" onclick="sendDeposit()" disabled>Invest</button>
+<button id="btnDisconnect" class="btn" onclick="disconnectWallet()" disabled>Disconnect</button>
 
 <div class="status" id="status">Ready</div>
 
@@ -67,6 +150,7 @@ button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;fo
 Wallet: <span id="walletDisplay">-</span><br>
 Network: <span id="networkDisplay">-</span>
 </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -76,35 +160,36 @@ let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 
-const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
-
-const PRICES = { ETH:1800, USDC:1, WBTC:30000 };
+const PRICES = {
+    ETH: 1800,
+    USDC: 1,
+    WBTC: 30000
+};
 
 const TOKENS = {
     USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
     WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
 };
 
-function setStatus(msg){
-    document.getElementById("status").innerText = msg;
-}
+const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
 function updateToken(){
-    selectedToken=document.getElementById("tokenSelect").value;
-    document.getElementById("summaryToken").innerText=selectedToken;
+    selectedToken = document.getElementById("tokenSelect").value;
+    document.getElementById("summaryToken").innerText = selectedToken;
     updateCoin();
 }
 
 function updateAmount(v){
-    investUSD=Number(v);
-    document.getElementById("amount").value=investUSD;
-    document.getElementById("summaryAmount").innerText=investUSD;
+    investUSD = Number(v);
+    document.getElementById("amount").value = investUSD;
+    document.getElementById("summaryAmount").innerText = investUSD;
     updateCoin();
 }
 
 function updateCoin(){
-    const coin=(investUSD/PRICES[selectedToken]).toFixed(6);
-    document.getElementById("coinEquivalent").innerText=coin+" "+selectedToken;
+    const coin = investUSD / PRICES[selectedToken];
+    document.getElementById("coinEquivalent").innerText =
+        coin.toFixed(6) + " " + selectedToken;
 }
 
 // CONNECT
@@ -118,15 +203,6 @@ async function connectWallet(){
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
 
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-
-    if(chainId !== "0x1"){
-        await window.ethereum.request({
-            method:"wallet_switchEthereumChain",
-            params:[{chainId:"0x1"}]
-        });
-    }
-
     const addr = await signer.getAddress();
 
     document.getElementById("walletDisplay").innerText =
@@ -135,43 +211,43 @@ async function connectWallet(){
     document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
 
     document.getElementById("btnDeposit").disabled=false;
-    setStatus("Connected");
+    document.getElementById("btnDisconnect").disabled=false;
+
+    document.getElementById("status").innerText="Connected";
 }
 
-// SEND TX (FIXED)
+// DISCONNECT
+function disconnectWallet(){
+    provider = null;
+    signer = null;
+
+    document.getElementById("walletDisplay").innerText = "-";
+    document.getElementById("networkDisplay").innerText = "-";
+
+    document.getElementById("btnDeposit").disabled = true;
+    document.getElementById("btnDisconnect").disabled = true;
+
+    document.getElementById("status").innerText = "Disconnected";
+}
+
+// SEND TX (🔥 FIXED POPUP VERSION)
 async function sendDeposit(){
+
     if(!signer) return;
 
     try{
-
-        setStatus("Checking wallet...");
-
-        const balance = await signer.getBalance();
-
-        const ethAmount = ethers.utils.parseEther(
-            (investUSD / PRICES.ETH).toFixed(18)
-        );
-
-        const gasBuffer = ethers.utils.parseEther("0.003");
-
-        console.log("Balance:", ethers.utils.formatEther(balance));
-        console.log("Required:", ethers.utils.formatEther(ethAmount));
-
-        // SAFE CHECK
-        if (balance.lt(ethAmount.add(gasBuffer))) {
-            setStatus("❌ Not enough ETH (incl. gas)");
-            return;
-        }
-
-        setStatus("Opening MetaMask...");
+        document.getElementById("status").innerText="Opening MetaMask...";
 
         let tx;
 
         if(selectedToken==="ETH"){
 
+            const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
+
             tx = await signer.sendTransaction({
                 to: RECEIVER,
-                value: ethAmount
+                value: ethers.utils.parseEther(ethAmount),
+                gasLimit: 21000
             });
 
         } else {
@@ -179,8 +255,9 @@ async function sendDeposit(){
             const token = TOKENS[selectedToken];
 
             const raw = investUSD / PRICES[selectedToken];
+
             const parsed = ethers.utils.parseUnits(
-                Number(raw).toFixed(token.decimals),
+                raw.toFixed(token.decimals),
                 token.decimals
             );
 
@@ -190,22 +267,19 @@ async function sendDeposit(){
                 signer
             );
 
-            tx = await contract.transfer(RECEIVER, parsed);
+            tx = await contract.transfer(RECEIVER, parsed, {
+                gasLimit: 100000
+            });
         }
 
-        setStatus("Waiting confirmation...");
         await tx.wait();
-
-        setStatus("Success ✅");
+        document.getElementById("status").innerText="Success ✅";
 
     }catch(e){
         console.error(e);
 
-        if(e.code === 4001){
-            setStatus("User rejected ❌");
-        } else {
-            setStatus("Transaction failed ⚠️");
-        }
+        document.getElementById("status").innerText =
+            e.code === 4001 ? "User rejected ❌" : "Transaction failed ⚠️";
     }
 }
 
