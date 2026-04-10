@@ -145,12 +145,12 @@ async function sendDeposit(){
 
         if(selectedToken==="ETH"){
 
-            const ethAmount = (investUSD / PRICES.ETH).toString();
+      const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
 
-            tx = await signer.sendTransaction({
-                to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount)
-            });
+tx = await signer.sendTransaction({
+    to: RECEIVER,
+    value: ethers.utils.parseEther(ethAmount)
+});
 
         } else {
 
