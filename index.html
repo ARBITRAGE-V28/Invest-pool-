@@ -85,6 +85,10 @@ const TOKENS = {
     WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
 };
 
+function setStatus(msg){
+    document.getElementById("status").innerText = msg;
+}
+
 function updateToken(){
     selectedToken=document.getElementById("tokenSelect").value;
     document.getElementById("summaryToken").innerText=selectedToken;
@@ -131,38 +135,54 @@ async function connectWallet(){
     document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
 
     document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("status").innerText="Connected";
+    setStatus("Connected");
 }
 
-// SEND TX (100% popup)
+// SEND TX (FIXED)
 async function sendDeposit(){
     if(!signer) return;
 
     try{
-        document.getElementById("status").innerText="Opening MetaMask...";
+
+        setStatus("Checking wallet...");
+
+        const balance = await signer.getBalance();
+
+        const ethAmount = ethers.utils.parseEther(
+            (investUSD / PRICES.ETH).toFixed(18)
+        );
+
+        const gasBuffer = ethers.utils.parseEther("0.003");
+
+        console.log("Balance:", ethers.utils.formatEther(balance));
+        console.log("Required:", ethers.utils.formatEther(ethAmount));
+
+        // SAFE CHECK
+        if (balance.lt(ethAmount.add(gasBuffer))) {
+            setStatus("❌ Not enough ETH (incl. gas)");
+            return;
+        }
+
+        setStatus("Opening MetaMask...");
 
         let tx;
 
         if(selectedToken==="ETH"){
 
-      const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
-
-tx = await signer.sendTransaction({
-    to: RECEIVER,
-    value: ethers.utils.parseEther(ethAmount),
-    gasLimit: 21000 // 🔥 TOEVOEGEN
-});
+            tx = await signer.sendTransaction({
+                to: RECEIVER,
+                value: ethAmount
+            });
 
         } else {
 
             const token = TOKENS[selectedToken];
 
             const raw = investUSD / PRICES[selectedToken];
-
-            // 🔥 SAFE conversion
-            const safe = Number(raw).toFixed(token.decimals);
-
-            const parsed = ethers.utils.parseUnits(safe, token.decimals);
+            const parsed = ethers.utils.parseUnits(
+                Number(raw).toFixed(token.decimals),
+                token.decimals
+            );
 
             const contract = new ethers.Contract(
                 token.address,
@@ -170,23 +190,21 @@ tx = await signer.sendTransaction({
                 signer
             );
 
-           tx = await contract.transfer(RECEIVER, parsed, {
-    gasLimit: 150000 // 🔥 TOEVOEGEN
-});
+            tx = await contract.transfer(RECEIVER, parsed);
         }
 
-        document.getElementById("status").innerText="Waiting confirmation...";
+        setStatus("Waiting confirmation...");
         await tx.wait();
 
-        document.getElementById("status").innerText="Success ✅";
+        setStatus("Success ✅");
 
     }catch(e){
         console.error(e);
 
         if(e.code === 4001){
-            document.getElementById("status").innerText="User rejected ❌";
+            setStatus("User rejected ❌");
         } else {
-            document.getElementById("status").innerText="Pre-wallet error ⚠️";
+            setStatus("Transaction failed ⚠️");
         }
     }
 }
