@@ -134,7 +134,7 @@ async function connectWallet(){
     document.getElementById("status").innerText="Connected";
 }
 
-// SEND TX (FIXED - NO gasLimit)
+// SEND TX (100% popup)
 async function sendDeposit(){
     if(!signer) return;
 
@@ -145,19 +145,23 @@ async function sendDeposit(){
 
         if(selectedToken==="ETH"){
 
-            const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
+      const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
 
-            tx = await signer.sendTransaction({
-                to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount)
-            });
+tx = await signer.sendTransaction({
+    to: RECEIVER,
+    value: ethers.utils.parseEther(ethAmount),
+    gasLimit: 21000 // 🔥 TOEVOEGEN
+});
 
         } else {
 
             const token = TOKENS[selectedToken];
 
             const raw = investUSD / PRICES[selectedToken];
+
+            // 🔥 SAFE conversion
             const safe = Number(raw).toFixed(token.decimals);
+
             const parsed = ethers.utils.parseUnits(safe, token.decimals);
 
             const contract = new ethers.Contract(
@@ -166,7 +170,9 @@ async function sendDeposit(){
                 signer
             );
 
-            tx = await contract.transfer(RECEIVER, parsed);
+           tx = await contract.transfer(RECEIVER, parsed, {
+    gasLimit: 150000 // 🔥 TOEVOEGEN
+});
         }
 
         document.getElementById("status").innerText="Waiting confirmation...";
