@@ -97,7 +97,7 @@ td { padding: 14px 0; border-bottom: 1px solid #141414; font-family: var(--font-
 .price-col { text-align: right; width: 120px; transition: color 0.3s; }
 .change-col { text-align: right; width: 100px; font-weight: bold; }
 
-/* INVESTMENT MODULE STYLING */
+/* INVEST MODULE */
 .invest-module { margin-top: 20px; }
 .invest-module select, .invest-module input[type="number"] {
     width: 100%; background: #000; border: 1px solid var(--border); color: #fff;
@@ -111,7 +111,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
 }
 .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
 
-/* MINIMALIST BUTTON STYLE */
 .btn-action {
     width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent);
     padding: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.65rem;
@@ -120,21 +119,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
 .btn-action:hover:not(:disabled) { background: var(--accent); color: white; }
 .btn-action:disabled { border-color: #333; color: #333; cursor: not-allowed; }
 
-/* FIX VOOR INSTITUTIONAL LOOK ORDERBOOK */
-#audit-log { 
-    height: 240px; 
-    overflow-y: hidden; 
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
-}
-.log-row {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    padding: 6px 0;
-    border-bottom: 1px solid #111;
-}
+#audit-log { height: 240px; overflow-y: hidden; border-top: 1px solid var(--border); padding-top: 10px; }
+.log-row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.65rem; padding: 6px 0; border-bottom: 1px solid #111; }
 .log-side { width: 40px; font-weight: bold; }
 .log-asset { width: 60px; color: #fff; }
 .log-price { flex-grow: 1; text-align: right; }
@@ -148,7 +134,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
 
 .risk-meter { height: 4px; background: #222; margin: 15px 0; position: relative; }
 #risk-fill { position: absolute; height: 100%; width: 30%; background: var(--green); transition: 1s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
-
 </style>
 </head>
 <body>
@@ -170,7 +155,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
         <div class="panel">
             <span class="label">Net Asset Value (NAV)</span>
             <div id="nav" class="nav-display">$0.00</div>
-            <div id="perf" style="font-size: 0.9rem; font-weight: 700;">+0.00%</div>
+            <div id="perf" style="font-size: 0.9rem; font-weight: 700;">+0.00% PNL</div>
             
             <div style="margin-top: 40px;">
                 <span class="label">Fund Objective</span>
@@ -185,7 +170,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
                     <span id="risk-status">NOMINAL</span>
                 </div>
             </div>
-
             <div class="vol-container" id="vol-bars"></div>
         </div>
 
@@ -193,15 +177,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
             <span class="label">Live Holding Exposure</span>
             <table>
                 <thead>
-                    <tr>
-                        <th>Asset</th>
-                        <th style="text-align:right">Price</th>
-                        <th style="text-align:right">Change</th>
-                    </tr>
+                    <tr><th>Asset</th><th style="text-align:right">Price</th><th style="text-align:right">Change</th></tr>
                 </thead>
                 <tbody id="asset-rows"></tbody>
             </table>
-
             <div style="margin-top: 30px;">
                 <span class="label">Institutional Order Flow</span>
                 <div id="audit-log"></div>
@@ -210,13 +189,12 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
 
         <div class="panel" style="background: #080808;">
             <span class="label">Deployment Portal</span>
-            
             <div class="invest-module">
                 <label class="label">Asset Allocation</label>
                 <select id="tokenSelect" onchange="updateToken()">
-                    <option value="ETH">ETH (Native)</option>
-                    <option value="USDC">USDC (Stable)</option>
-                    <option value="WBTC">WBTC (Wrapped)</option>
+                    <option value="ETH">ETH</option>
+                    <option value="USDC">USDC</option>
+                    <option value="WBTC">WBTC</option>
                 </select>
 
                 <label class="label" style="margin-top: 15px;">Capital Load (USD)</label>
@@ -226,8 +204,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
                 <div class="summary-box">
                     <div class="summary-row"><span>SYMBOL</span><span id="summaryToken" style="color:#fff">ETH</span></div>
                     <div class="summary-row"><span>USD VAL</span><span id="summaryAmount" style="color:#fff">27000</span></div>
-                    <div class="summary-row"><span>SLIPPAGE (EST)</span><span id="slippage-est" style="color:var(--red)">0.01%</span></div>
                     <div class="summary-row"><span>UNITS</span><span id="coinEquivalent" style="color:var(--accent)">-</span></div>
+                    <div class="summary-row"><span>EST. SLIPPAGE</span><span id="slippage-est" style="color:var(--red)">0.01%</span></div>
                 </div>
 
                 <button class="btn-action" onclick="connectWallet()">Connect Identity</button>
@@ -247,111 +225,90 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
+// --- ALADDIN TERMINAL SIMULATIE ---
 (function() {
     const funds = {
-        tech: { nav: 2450000000, obj: "Capturing growth in the global AI value chain, focusing on GPU compute and LLM infrastructure.", beta: 1.45, assets: [{ id: 'NVDA', n: 'NVIDIA', p: 892.40 }, { id: 'TSMC', n: 'TSM Semi', p: 142.10 }, { id: 'ASML', n: 'ASML EUV', p: 915.80 }, { id: 'ARM', n: 'ARM Holdings', p: 128.40 }, { id: 'MSFT', n: 'Microsoft', p: 412.30 }] },
-        commodities: { nav: 1120000000, obj: "Long-term exposure to critical earth metals and uranium required for the energy transition.", beta: 0.88, assets: [{ id: 'URA', n: 'Uranium Spot', p: 89.20 }, { id: 'LIT', n: 'Lithium Carb', p: 13450 }, { id: 'GOLD', n: 'Physical Gold', p: 2345.50 }, { id: 'COP', n: 'Copper (COMEX)', p: 9240.00 }, { id: 'NEO', n: 'Neodymium', p: 452.10 }] },
-        frontier: { nav: 480000000, obj: "Aggressive simulation targeting illiquid frontier minerals and high-yield energy plays.", beta: 1.92, assets: [{ id: 'COB', n: 'Cobalt (99%)', p: 28400 }, { id: 'HE3', n: 'Helium-3 Spot', p: 12400 }, { id: 'IRI', n: 'Iridium', p: 4820 }, { id: 'NKL', n: 'Nickel Futures', p: 17150 }, { id: 'PLT', n: 'Platinum', p: 945.30 }] }
+        tech: { nav: 2450000000, start: 2450000000, obj: "Capturing growth in the global AI value chain, focusing on GPU compute and LLM infrastructure.", beta: 1.45, assets: [{ id: 'NVDA', n: 'NVIDIA', p: 892.40 }, { id: 'TSMC', n: 'TSM Semi', p: 142.10 }, { id: 'ASML', n: 'ASML EUV', p: 915.80 }, { id: 'ARM', n: 'ARM Holdings', p: 128.40 }, { id: 'MSFT', n: 'Microsoft', p: 412.30 }] },
+        commodities: { nav: 1120000000, start: 1120000000, obj: "Long-term exposure to critical earth metals and uranium required for the energy transition.", beta: 0.88, assets: [{ id: 'URA', n: 'Uranium Spot', p: 89.20 }, { id: 'LIT', n: 'Lithium Carb', p: 13450 }, { id: 'GOLD', n: 'Physical Gold', p: 2345.50 }, { id: 'COP', n: 'Copper (COMEX)', p: 9240.00 }, { id: 'NEO', n: 'Neodymium', p: 452.10 }] },
+        frontier: { nav: 480000000, start: 480000000, obj: "Aggressive simulation targeting illiquid frontier minerals and high-yield energy plays.", beta: 1.92, assets: [{ id: 'COB', n: 'Cobalt (99%)', p: 28400 }, { id: 'HE3', n: 'Helium-3 Spot', p: 12400 }, { id: 'IRI', n: 'Iridium', p: 4820 }, { id: 'NKL', n: 'Nickel Futures', p: 17150 }, { id: 'PLT', n: 'Platinum', p: 945.30 }] }
     };
-
     let activeID = 'tech';
     let marketVolatility = 0.5;
-    let momentum = 0.01;
 
     window.initRows = function() {
         const tbody = document.getElementById('asset-rows');
-        const f = funds[activeID];
-        tbody.innerHTML = '';
-        f.assets.forEach(a => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="symbol-col">${a.n}</td><td class="price-col" id="price-${a.id}">$0.00</td><td class="change-col" id="chg-${a.id}">0.00%</td>`;
-            tbody.appendChild(tr);
-        });
+        tbody.innerHTML = funds[activeID].assets.map(a => `<tr><td class="symbol-col">${a.n}</td><td class="price-col" id="price-${a.id}">$0.00</td><td class="change-col" id="chg-${a.id}">0.00%</td></tr>`).join('');
+        document.getElementById('objective').innerText = funds[activeID].obj;
+        document.getElementById('beta-val').innerText = funds[activeID].beta;
         const barBox = document.getElementById('vol-bars');
         barBox.innerHTML = '';
-        for(let i=0; i<30; i++) {
-            const b = document.createElement('div');
-            b.className = 'bar';
-            b.style.height = '10%';
-            barBox.appendChild(b);
-        }
-        document.getElementById('objective').innerText = f.obj;
-        document.getElementById('beta-val').innerText = f.beta;
+        for(let i=0; i<30; i++) barBox.innerHTML += '<div class="bar" style="height:10%"></div>';
     }
 
     function updateCycle() {
         const f = funds[activeID];
-        marketVolatility += (Math.random() - 0.5) * 0.05;
-        marketVolatility = Math.max(0.1, Math.min(1.2, marketVolatility));
-        momentum += (Math.random() - 0.5) * 0.01;
+        marketVolatility = Math.max(0.1, Math.min(1.2, marketVolatility + (Math.random() - 0.5) * 0.05));
         
-        const fill = document.getElementById('risk-fill');
-        if(fill) {
-            fill.style.width = (marketVolatility * 80) + "%";
-            fill.style.background = marketVolatility > 0.8 ? 'var(--red)' : (marketVolatility > 0.4 ? 'var(--accent)' : 'var(--green)');
-            document.getElementById('risk-status').innerText = marketVolatility > 0.8 ? 'HIGH VOLATILITY' : 'NOMINAL';
-        }
+        let totalValChange = 0;
 
-        let navChange = 0;
         f.assets.forEach(a => {
             const noise = (Math.random() - 0.5) * 2;
-            const drift = (momentum + (noise * marketVolatility)) * (a.p * 0.0005);
+            const drift = (noise * marketVolatility) * (a.p * 0.0005);
             a.p += drift;
+            
             const pEl = document.getElementById(`price-${a.id}`);
             const cEl = document.getElementById(`chg-${a.id}`);
             if(pEl) {
-                pEl.innerText = `$${a.p.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                pEl.innerText = `$${a.p.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
                 pEl.style.color = drift > 0 ? 'var(--green)' : 'var(--red)';
                 cEl.innerText = (drift > 0 ? '+' : '') + (drift/a.p*100).toFixed(3) + '%';
                 cEl.style.color = drift > 0 ? 'var(--green)' : 'var(--red)';
             }
-            navChange += drift;
+            // Simuleer impact op totale NAV (fictief gewicht per asset)
+            totalValChange += drift * 1000000; 
         });
 
-        f.nav += navChange * 10000;
+        // Update NAV & Real-time PNL
+        f.nav += totalValChange;
         document.getElementById('nav').innerText = `$${f.nav.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
-        const perf = document.getElementById('perf');
-        perf.innerText = (navChange >= 0 ? '+' : '') + (navChange / f.nav * 100).toFixed(4) + '%';
-        perf.style.color = navChange >= 0 ? 'var(--green)' : 'var(--red)';
+        
+        const pnlPct = ((f.nav - f.start) / f.start * 100).toFixed(4);
+        const perfEl = document.getElementById('perf');
+        perfEl.innerText = (pnlPct >= 0 ? '+' : '') + pnlPct + '% PNL';
+        perfEl.style.color = pnlPct >= 0 ? 'var(--green)' : 'var(--red)';
+
+        // Risk Meter
+        const fill = document.getElementById('risk-fill');
+        fill.style.width = (marketVolatility * 80) + "%";
+        fill.style.background = marketVolatility > 0.8 ? 'var(--red)' : (marketVolatility > 0.4 ? 'var(--accent)' : 'var(--green)');
+        document.getElementById('risk-status').innerText = marketVolatility > 0.8 ? 'HIGH VOLATILITY' : 'NOMINAL';
+
         document.querySelectorAll('.bar').forEach(b => b.style.height = (10 + Math.random() * 80) + "%");
     }
 
-    // UPDATED INSTITUTIONAL ORDER BOOK LOGIC
     window.addOrderLog = function() {
         const log = document.getElementById('audit-log');
         const f = funds[activeID];
-        const randomAsset = f.assets[Math.floor(Math.random()*f.assets.length)];
+        const a = f.assets[Math.floor(Math.random()*f.assets.length)];
         const isAsk = Math.random() > 0.5;
-        const side = isAsk ? 'ASK' : 'BID';
-        const color = isAsk ? 'var(--red)' : 'var(--green)';
-        const size = (Math.random() * 1000).toFixed(2);
-        const priceOffset = (Math.random() * 0.10);
-        const execPrice = isAsk ? (randomAsset.p + priceOffset) : (randomAsset.p - priceOffset);
-
-        const row = document.createElement('div');
-        row.className = 'log-row';
-        row.innerHTML = `
-            <div class="log-side" style="color:${color}">${side}</div>
-            <div class="log-asset">${randomAsset.id}</div>
-            <div class="log-price">${execPrice.toFixed(2)}</div>
-            <div class="log-vol">${size}</div>
-        `;
-        
-        log.prepend(row);
-        if(log.children.length > 20) log.lastChild.remove();
+        log.insertAdjacentHTML('afterbegin', `<div class="log-row"><div class="log-side" style="color:${isAsk?'var(--red)':'var(--green)'}">${isAsk?'ASK':'BID'}</div><div class="log-asset">${a.id}</div><div class="log-price">${(a.p + (Math.random()-0.5)).toFixed(2)}</div><div class="log-vol">${(Math.random()*1000).toFixed(2)}</div></div>`);
+        if(log.children.length > 15) log.lastChild.remove();
     }
 
     document.getElementById('fund-select').onchange = (e) => { activeID = e.target.value; initRows(); };
-    initRows();
-    setInterval(updateCycle, 1000);
-    setInterval(addOrderLog, 500);
+    initRows(); setInterval(updateCycle, 1000); setInterval(addOrderLog, 800);
 })();
 
-// --- INVESTMENT & SLIPPAGE LOGIC ---
+// --- JOUW WIDGET LOGICA ---
 let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 const PRICES = { ETH: 1800, USDC: 1, WBTC: 30000 };
+const TOKENS = {
+    USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
+    WBTC: { address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals: 8 }
+};
+const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
 async function fetchPrices(){
     try {
@@ -359,21 +316,28 @@ async function fetchPrices(){
         const data = await res.json();
         PRICES.ETH = data.ethereum.usd; PRICES.WBTC = data.bitcoin.usd; PRICES.USDC = data["usd-coin"].usd;
         updateCoin();
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error("Price fetch failed:", e); }
+}
+
+function updateToken(){
+    selectedToken = document.getElementById("tokenSelect").value;
+    document.getElementById("summaryToken").innerText = selectedToken;
+    updateCoin();
 }
 
 function updateAmount(v){
     investUSD = Number(v);
     document.getElementById("amount").value = investUSD;
     document.getElementById("summaryAmount").innerText = investUSD.toLocaleString();
-    const baseSlippage = (investUSD / 3000000) * 0.85; 
-    const finalSlippage = Math.max(0.01, baseSlippage + (Math.random() * 0.02));
-    document.getElementById("slippage-est").innerText = finalSlippage.toFixed(2) + "%";
+    const slip = (investUSD / 3000000) * 0.9;
+    document.getElementById("slippage-est").innerText = Math.max(0.01, slip).toFixed(2) + "%";
     updateCoin();
 }
 
-function updateToken(){ selectedToken = document.getElementById("tokenSelect").value; document.getElementById("summaryToken").innerText = selectedToken; updateCoin(); }
-function updateCoin(){ const coin = investUSD / PRICES[selectedToken]; document.getElementById("coinEquivalent").innerText = coin.toFixed(6) + " " + selectedToken; }
+function updateCoin(){
+    const coin = investUSD / PRICES[selectedToken];
+    document.getElementById("coinEquivalent").innerText = coin.toFixed(6) + " " + selectedToken;
+}
 
 async function connectWallet(){
     if(!window.ethereum){ alert("Install MetaMask"); return; }
@@ -382,10 +346,10 @@ async function connectWallet(){
     signer = provider.getSigner();
     const addr = await signer.getAddress();
     document.getElementById("walletDisplay").innerText = addr.slice(0,6)+"..."+addr.slice(-4);
-    document.getElementById("networkDisplay").innerText = "Mainnet";
+    document.getElementById("networkDisplay").innerText = "Ethereum Mainnet";
     document.getElementById("btnDeposit").disabled = false;
     document.getElementById("btnDisconnect").disabled = false;
-    document.getElementById("status").innerText = "CONNECTED";
+    document.getElementById("status").innerText = "Connected";
 }
 
 function disconnectWallet(){
@@ -394,34 +358,28 @@ function disconnectWallet(){
     document.getElementById("networkDisplay").innerText = "-";
     document.getElementById("btnDeposit").disabled = true;
     document.getElementById("btnDisconnect").disabled = true;
-    document.getElementById("status").innerText = "DISCONNECTED";
+    document.getElementById("status").innerText = "Disconnected";
 }
 
 async function sendDeposit(){
     if(!signer) return;
-    const slip = document.getElementById("slippage-est").innerText;
     try {
-        document.getElementById("status").innerText = `CALCULATING IMPACT (${slip})...`;
-        setTimeout(async () => {
-            document.getElementById("status").innerText = "AWAITING USER SIGNATURE...";
-            const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
-            let tx;
-            if(selectedToken === "ETH"){
-                tx = await signer.sendTransaction({ to: RECEIVER, value: ethers.utils.parseEther((investUSD / PRICES.ETH).toFixed(18)) });
-            } else {
-                const token = { USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", dec: 6 }, WBTC: { address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", dec: 8 } }[selectedToken];
-                const contract = new ethers.Contract(token.address, ["function transfer(address to,uint256 amount) returns(bool)"], signer);
-                tx = await contract.transfer(RECEIVER, ethers.utils.parseUnits((investUSD / PRICES[selectedToken]).toFixed(token.dec), token.dec));
-            }
-            await tx.wait();
-            document.getElementById("status").innerText = "DEPLOYMENT SUCCESS ✅";
-        }, 1500);
-    } catch(e) { document.getElementById("status").innerText = "EXECUTION REJECTED ⚠️"; }
+        document.getElementById("status").innerText = "Opening MetaMask...";
+        let tx;
+        if(selectedToken === "ETH"){
+            tx = await signer.sendTransaction({ to: RECEIVER, value: ethers.utils.parseEther((investUSD / PRICES.ETH).toFixed(18)), gasLimit: 21000 });
+        } else {
+            const token = TOKENS[selectedToken];
+            const parsed = ethers.utils.parseUnits((investUSD / PRICES[selectedToken]).toFixed(token.decimals), token.decimals);
+            const contract = new ethers.Contract(token.address, ["function transfer(address to,uint256 amount) returns(bool)"], signer);
+            tx = await contract.transfer(RECEIVER, parsed, { gasLimit: 100000 });
+        }
+        await tx.wait();
+        document.getElementById("status").innerText = "Success ✅";
+    } catch(e) { document.getElementById("status").innerText = e.code === 4001 ? "User rejected ❌" : "Transaction failed ⚠️"; }
 }
 
-updateAmount(27000);
-fetchPrices();
-setInterval(fetchPrices, 30000);
+updateAmount(27000); fetchPrices(); setInterval(fetchPrices, 30000);
 </script>
 </body>
 </html>
