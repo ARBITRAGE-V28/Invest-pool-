@@ -166,6 +166,26 @@ const PRICES = {
     WBTC: 30000
 };
 
+// 🔥 REALTIME PRICES (CoinGecko)
+async function fetchPrices(){
+    try{
+        const res = await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,usd-coin&vs_currencies=usd"
+        );
+
+        const data = await res.json();
+
+        PRICES.ETH = data.ethereum.usd;
+        PRICES.WBTC = data.bitcoin.usd;
+        PRICES.USDC = data["usd-coin"].usd;
+
+        updateCoin();
+
+    }catch(e){
+        console.error("Price fetch failed:", e);
+    }
+}
+
 const TOKENS = {
     USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
     WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
@@ -230,7 +250,7 @@ function disconnectWallet(){
     document.getElementById("status").innerText = "Disconnected";
 }
 
-// SEND TX (🔥 FIXED POPUP VERSION)
+// SEND TX
 async function sendDeposit(){
 
     if(!signer) return;
@@ -285,6 +305,10 @@ async function sendDeposit(){
 
 // INIT
 updateAmount(27000);
+
+// 🔥 START REALTIME UPDATES
+fetchPrices();
+setInterval(fetchPrices, 30000);
 </script>
 
 </body>
