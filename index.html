@@ -103,7 +103,26 @@ td { padding: 14px 0; border-bottom: 1px solid #141414; font-family: var(--font-
     width: 100%; background: #000; border: 1px solid var(--border); color: #fff;
     padding: 10px; font-family: var(--font-mono); font-size: 0.75rem; margin-top: 5px;
 }
-input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; cursor: pointer; }
+
+/* INSTITUTIONAL SLIDER WITH ANCHOR POINTS */
+input[type="range"] { 
+    width: 100%; 
+    accent-color: var(--accent); 
+    margin: 15px 0 5px 0; 
+    cursor: pointer;
+    background: linear-gradient(to right, #333 1px, transparent 1px) repeat-x;
+    background-size: 20% 8px; /* Maakt 5 secties (ankerpunten) */
+    background-position: 0 100%;
+}
+
+.tick-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    color: var(--dim);
+    margin-bottom: 15px;
+}
 
 .summary-box {
     background: #0a0a0a; border: 1px solid var(--border); padding: 15px; margin: 20px 0;
@@ -198,7 +217,21 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
                 </select>
 
                 <label class="label" style="margin-top: 15px;">Capital Load (USD)</label>
-                <input type="range" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
+                <input type="range" id="capitalSlider" min="27000" max="3000000" step="1000" value="27000" list="anchor-points" oninput="updateAmount(this.value)">
+                <datalist id="anchor-points">
+                    <option value="27000"></option>
+                    <option value="750000"></option>
+                    <option value="1500000"></option>
+                    <option value="2250000"></option>
+                    <option value="3000000"></option>
+                </datalist>
+                <div class="tick-labels">
+                    <span>MIN</span>
+                    <span>0.75M</span>
+                    <span>1.5M</span>
+                    <span>2.25M</span>
+                    <span>MAX</span>
+                </div>
                 <input type="number" id="amount" readonly>
 
                 <div class="summary-box">
@@ -248,14 +281,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
     function updateCycle() {
         const f = funds[activeID];
         marketVolatility = Math.max(0.1, Math.min(1.2, marketVolatility + (Math.random() - 0.5) * 0.05));
-        
         let totalValChange = 0;
-
         f.assets.forEach(a => {
             const noise = (Math.random() - 0.5) * 2;
             const drift = (noise * marketVolatility) * (a.p * 0.0005);
             a.p += drift;
-            
             const pEl = document.getElementById(`price-${a.id}`);
             const cEl = document.getElementById(`chg-${a.id}`);
             if(pEl) {
@@ -264,25 +294,18 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
                 cEl.innerText = (drift > 0 ? '+' : '') + (drift/a.p*100).toFixed(3) + '%';
                 cEl.style.color = drift > 0 ? 'var(--green)' : 'var(--red)';
             }
-            // Simuleer impact op totale NAV (fictief gewicht per asset)
             totalValChange += drift * 1000000; 
         });
-
-        // Update NAV & Real-time PNL
         f.nav += totalValChange;
         document.getElementById('nav').innerText = `$${f.nav.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
-        
         const pnlPct = ((f.nav - f.start) / f.start * 100).toFixed(4);
         const perfEl = document.getElementById('perf');
         perfEl.innerText = (pnlPct >= 0 ? '+' : '') + pnlPct + '% PNL';
         perfEl.style.color = pnlPct >= 0 ? 'var(--green)' : 'var(--red)';
-
-        // Risk Meter
         const fill = document.getElementById('risk-fill');
         fill.style.width = (marketVolatility * 80) + "%";
         fill.style.background = marketVolatility > 0.8 ? 'var(--red)' : (marketVolatility > 0.4 ? 'var(--accent)' : 'var(--green)');
         document.getElementById('risk-status').innerText = marketVolatility > 0.8 ? 'HIGH VOLATILITY' : 'NOMINAL';
-
         document.querySelectorAll('.bar').forEach(b => b.style.height = (10 + Math.random() * 80) + "%");
     }
 
@@ -294,12 +317,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 10px 0; 
         log.insertAdjacentHTML('afterbegin', `<div class="log-row"><div class="log-side" style="color:${isAsk?'var(--red)':'var(--green)'}">${isAsk?'ASK':'BID'}</div><div class="log-asset">${a.id}</div><div class="log-price">${(a.p + (Math.random()-0.5)).toFixed(2)}</div><div class="log-vol">${(Math.random()*1000).toFixed(2)}</div></div>`);
         if(log.children.length > 15) log.lastChild.remove();
     }
-
     document.getElementById('fund-select').onchange = (e) => { activeID = e.target.value; initRows(); };
     initRows(); setInterval(updateCycle, 1000); setInterval(addOrderLog, 800);
 })();
 
-// --- JOUW WIDGET LOGICA ---
+// --- WIDGET LOGICA ---
 let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
