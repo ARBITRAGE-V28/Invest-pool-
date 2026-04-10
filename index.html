@@ -18,6 +18,33 @@
     --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* --- NIEUWE SELECTOR STYLING --- */
+.strategy-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    padding: 5px;
+    background: #000;
+}
+.strat-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--dim);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    padding: 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: 0.2s;
+    letter-spacing: 1px;
+}
+.strat-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
 * { box-sizing: border-box; }
 body {
     background: var(--bg);
@@ -75,8 +102,6 @@ select {
     padding: 30px;
     border-right: 1px solid var(--border);
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
 }
 .panel:last-child { border-right: none; }
 
@@ -86,49 +111,11 @@ select {
     font-weight: 500; 
     margin: 10px 0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 .label { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 10px;}
 
-/* SYSTEM LOG */
-#system-log {
-    margin-top: auto;
-    height: 120px;
-    border-top: 1px solid var(--border);
-    padding-top: 15px;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    overflow: hidden;
-}
-.sys-row { display: flex; gap: 10px; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; }
-.sys-time { color: var(--dim); }
-.sys-msg { color: #fff; }
-
-/* STRATEGY SELECTOR */
-.strategy-selector {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border: 1px solid var(--border);
-    padding: 5px;
-    background: #000;
-}
-.strat-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--dim);
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    padding: 8px;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: 0.2s;
-    letter-spacing: 1px;
-}
-.strat-btn.active { background: var(--accent); color: white; }
-
-/* TABLES */
 table { width: 100%; border-collapse: collapse; }
 th { text-align: left; font-size: 0.6rem; color: var(--dim); text-transform: uppercase; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
 td { padding: 14px 0; border-bottom: 1px solid #141414; font-family: var(--font-mono); font-size: 0.8rem; height: 50px; }
@@ -137,35 +124,56 @@ td { padding: 14px 0; border-bottom: 1px solid #141414; font-family: var(--font-
 .price-col { text-align: right; width: 120px; transition: color 0.3s; }
 .change-col { text-align: right; width: 100px; font-weight: bold; }
 
-/* INVEST MODULE */
-.invest-module { margin-top: 10px; }
+.invest-module { margin-top: 20px; }
 .invest-module select, .invest-module input[type="number"] {
     width: 100%; background: #000; border: 1px solid var(--border); color: #fff;
     padding: 10px; font-family: var(--font-mono); font-size: 0.75rem; margin-top: 5px;
 }
 
 input[type="range"] { 
-    width: 100%; accent-color: var(--accent); margin: 15px 0 5px 0; cursor: pointer;
+    width: 100%; 
+    accent-color: var(--accent); 
+    margin: 15px 0 5px 0; 
+    cursor: pointer;
+    background: linear-gradient(to right, #333 1px, transparent 1px) repeat-x;
+    background-size: 20% 8px; 
+    background-position: 0 100%;
 }
 
-.summary-box { background: #0a0a0a; border: 1px solid var(--border); padding: 15px; margin: 15px 0; font-size: 0.7rem; font-family: var(--font-mono); }
+.tick-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    color: var(--dim);
+    margin-bottom: 15px;
+}
+
+.summary-box {
+    background: #0a0a0a; border: 1px solid var(--border); padding: 15px; margin: 20px 0;
+    font-size: 0.7rem; font-family: var(--font-mono);
+}
 .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
 
 .btn-action {
-    width: 100%; background: linear-gradient(135deg, var(--accent), #7f5af0); border: none; color: white;
+    width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent);
     padding: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.65rem;
-    margin-bottom: 8px; transition: 0.3s; letter-spacing: 1px; font-family: var(--font-ui); border-radius: 4px;
+    margin-bottom: 10px; transition: 0.3s; letter-spacing: 1px; font-family: var(--font-ui);
 }
-.btn-action:hover:not(:disabled) { filter: brightness(1.2); }
-.btn-action:disabled { background: #1a1a1a; color: #444; cursor: not-allowed; }
+.btn-action:hover:not(:disabled) { background: var(--accent); color: white; }
+.btn-action:disabled { border-color: #333; color: #333; cursor: not-allowed; }
 
 #audit-log { height: 240px; overflow-y: hidden; border-top: 1px solid var(--border); padding-top: 10px; }
 .log-row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.65rem; padding: 6px 0; border-bottom: 1px solid #111; }
+.log-side { width: 40px; font-weight: bold; }
+.log-asset { width: 60px; color: #fff; }
+.log-price { flex-grow: 1; text-align: right; }
+.log-vol { width: 80px; text-align: right; color: var(--dim); }
 
-.status-text { text-align: center; font-size: 0.65rem; color: var(--accent); margin-bottom: 15px; font-family: var(--font-mono); }
+.status-text { text-align: center; font-size: 0.65rem; color: var(--accent); margin-bottom: 15px; font-family: var(--font-mono); min-height: 20px; }
 .wallet-box { font-size: 0.6rem; color: var(--dim); font-family: var(--font-mono); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 15px; }
 
-.vol-container { display: flex; align-items: flex-end; gap: 3px; height: 80px; margin-top: 20px; }
+.vol-container { display: flex; align-items: flex-end; gap: 3px; height: 100px; margin-top: 40px; }
 .bar { flex: 1; background: var(--accent); min-height: 2px; opacity: 0.5; transition: height 0.6s ease; }
 
 .risk-meter { height: 4px; background: #222; margin: 15px 0; position: relative; }
@@ -193,12 +201,12 @@ input[type="range"] {
             <div id="nav" class="nav-display">$0.00</div>
             <div id="perf" style="font-size: 0.9rem; font-weight: 700;">+0.00% PNL</div>
             
-            <div style="margin-top: 25px;">
+            <div style="margin-top: 40px;">
                 <span class="label">Fund Objective</span>
                 <p id="objective" style="font-size: 0.75rem; color: var(--dim); line-height: 1.6;">Loading...</p>
             </div>
 
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 30px;">
                 <span class="label">Systemic Risk Level</span>
                 <div class="risk-meter"><div id="risk-fill"></div></div>
                 <div style="display:flex; justify-content:space-between; font-size: 0.6rem; font-family: var(--font-mono);">
@@ -207,11 +215,6 @@ input[type="range"] {
                 </div>
             </div>
             <div class="vol-container" id="vol-bars"></div>
-
-            <div id="system-log">
-                <span class="label">AI System Audit</span>
-                <div id="sys-content"></div>
-            </div>
         </div>
 
         <div class="panel">
@@ -238,31 +241,46 @@ input[type="range"] {
         <div class="panel" style="background: #080808;">
             <span class="label">Deployment Portal</span>
             <div class="invest-module">
-                <label class="label">Asset</label>
+                <label class="label">Asset Allocation</label>
                 <select id="tokenSelect" onchange="updateToken()">
                     <option value="ETH">ETH</option>
                     <option value="USDC">USDC</option>
                     <option value="WBTC">WBTC</option>
                 </select>
 
-                <label class="label" style="margin-top: 15px;">Amount (USD)</label>
-                <input type="range" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
+                <label class="label" style="margin-top: 15px;">Capital Load (USD)</label>
+                <input type="range" id="capitalSlider" min="27000" max="3000000" step="1000" value="27000" list="anchor-points" oninput="updateAmount(this.value)">
+                <datalist id="anchor-points">
+                    <option value="27000"></option>
+                    <option value="750000"></option>
+                    <option value="1500000"></option>
+                    <option value="2250000"></option>
+                    <option value="3000000"></option>
+                </datalist>
+                <div class="tick-labels">
+                    <span>MIN</span>
+                    <span>0.75M</span>
+                    <span>1.5M</span>
+                    <span>2.25M</span>
+                    <span>MAX</span>
+                </div>
                 <input type="number" id="amount" readonly>
 
                 <div class="summary-box">
-                    <div class="summary-row"><span class="label">Token</span><span id="summaryToken" style="color:#fff">ETH</span></div>
-                    <div class="summary-row"><span class="label">USD</span><span id="summaryAmount" style="color:#fff">27000</span></div>
-                    <div class="summary-row"><span class="label">Coins</span><span id="coinEquivalent" style="color:var(--accent)">-</span></div>
+                    <div class="summary-row"><span>SYMBOL</span><span id="summaryToken" style="color:#fff">ETH</span></div>
+                    <div class="summary-row"><span>USD VAL</span><span id="summaryAmount" style="color:#fff">27000</span></div>
+                    <div class="summary-row"><span>UNITS</span><span id="coinEquivalent" style="color:var(--accent)">-</span></div>
+                    <div class="summary-row"><span>EST. SLIPPAGE</span><span id="slippage-est" style="color:var(--red)">0.01%</span></div>
                 </div>
 
-                <button class="btn-action" onclick="connectWallet()">Connect Wallet</button>
-                <button id="btnDeposit" class="btn-action" onclick="sendDeposit()" disabled>Invest</button>
+                <button class="btn-action" onclick="connectWallet()">Connect Identity</button>
+                <button id="btnDeposit" class="btn-action" onclick="sendDeposit()" disabled>Execute Deployment</button>
                 <button id="btnDisconnect" class="btn-action" onclick="disconnectWallet()" disabled>Disconnect</button>
 
-                <div id="status" class="status-text">Ready</div>
+                <div id="status" class="status-text">SYSTEM READY</div>
 
                 <div class="wallet-box">
-                    WALLET: <span id="walletDisplay" style="color:#fff">-</span><br>
+                    ADDRESS: <span id="walletDisplay" style="color:#fff">-</span><br>
                     NETWORK: <span id="networkDisplay" style="color:#fff">-</span>
                 </div>
             </div>
@@ -283,25 +301,19 @@ input[type="range"] {
     let marketVolatility = 0.5;
     let strategyMultiplier = 1.0;
 
-    window.addSystemLog = function(msg) {
-        const log = document.getElementById('sys-content');
-        const time = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        log.insertAdjacentHTML('afterbegin', `<div class="sys-row"><span class="sys-time">[${time}]</span><span class="sys-msg">${msg}</span></div>`);
-        if(log.children.length > 5) log.lastChild.remove();
-    }
-
     window.setStrategy = function(multiplier, mode, btn) {
         strategyMultiplier = multiplier;
         document.querySelectorAll('.strat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        addSystemLog(`STRATEGY_ENGAGED: ${mode.toUpperCase()}`);
+        const log = document.getElementById('audit-log');
+        log.insertAdjacentHTML('afterbegin', `<div class="log-row" style="background:rgba(0,112,243,0.1)"><div class="log-asset" style="width:100%">SYSTEM: STRATEGY SWITCHED TO ${mode.toUpperCase()}</div></div>`);
     }
 
     window.initRows = function() {
         const tbody = document.getElementById('asset-rows');
         tbody.innerHTML = funds[activeID].assets.map(a => `<tr><td class="symbol-col">${a.n}</td><td class="price-col" id="price-${a.id}">$0.00</td><td class="change-col" id="chg-${a.id}">0.00%</td></tr>`).join('');
         document.getElementById('objective').innerText = funds[activeID].obj;
-        addSystemLog(`FUND_LOADED: ${activeID.toUpperCase()}`);
+        document.getElementById('beta-val').innerText = (funds[activeID].beta * strategyMultiplier).toFixed(2);
         const barBox = document.getElementById('vol-bars');
         barBox.innerHTML = '';
         for(let i=0; i<30; i++) barBox.innerHTML += '<div class="bar" style="height:10%"></div>';
@@ -352,36 +364,29 @@ input[type="range"] {
     initRows(); setInterval(updateCycle, 1000); setInterval(addOrderLog, 800);
 })();
 
-// --- JOUW ORIGINELE WIDGET SCRIPT (1:1 HERSTELD) ---
+// --- WIDGET LOGICA (GEÏNTEGREERD) ---
 let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 
-const PRICES = {
-    ETH: 1800,
-    USDC: 1,
-    WBTC: 30000
+// Default prijzen, worden overschreven door fetchPrices
+const PRICES = { ETH: 1800, USDC: 1, WBTC: 30000 };
+const TOKENS = {
+    USDC: { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6 },
+    WBTC: { address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals: 8 }
 };
+const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
 async function fetchPrices(){
-    try{
+    try {
         const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,usd-coin&vs_currencies=usd");
         const data = await res.json();
-        PRICES.ETH = data.ethereum.usd;
-        PRICES.WBTC = data.bitcoin.usd;
+        PRICES.ETH = data.ethereum.usd; 
+        PRICES.WBTC = data.bitcoin.usd; 
         PRICES.USDC = data["usd-coin"].usd;
         updateCoin();
-    }catch(e){
-        console.error("Price fetch failed:", e);
-    }
+    } catch(e) { console.error("Price fetch failed:", e); }
 }
-
-const TOKENS = {
-    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-    WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
-};
-
-const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
 function updateToken(){
     selectedToken = document.getElementById("tokenSelect").value;
@@ -392,7 +397,12 @@ function updateToken(){
 function updateAmount(v){
     investUSD = Number(v);
     document.getElementById("amount").value = investUSD;
-    document.getElementById("summaryAmount").innerText = investUSD;
+    document.getElementById("summaryAmount").innerText = investUSD.toLocaleString();
+    
+    // Slippage logica behouden uit hoofdscript
+    const slip = (investUSD / 3000000) * 0.9;
+    document.getElementById("slippage-est").innerText = Math.max(0.01, slip).toFixed(2) + "%";
+    
     updateCoin();
 }
 
@@ -402,20 +412,16 @@ function updateCoin(){
 }
 
 async function connectWallet(){
-    if(!window.ethereum){
-        alert("Install MetaMask");
-        return;
-    }
+    if(!window.ethereum){ alert("Install MetaMask"); return; }
     provider = new ethers.providers.Web3Provider(window.ethereum, "any");
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
     const addr = await signer.getAddress();
     document.getElementById("walletDisplay").innerText = addr.slice(0,6)+"..."+addr.slice(-4);
-    document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
-    document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("btnDisconnect").disabled=false;
-    document.getElementById("status").innerText="Connected";
-    addSystemLog("IDENTITY_VERIFIED: WALLET_CONNECTED");
+    document.getElementById("networkDisplay").innerText = "Ethereum Mainnet";
+    document.getElementById("btnDeposit").disabled = false;
+    document.getElementById("btnDisconnect").disabled = false;
+    document.getElementById("status").innerText = "Connected";
 }
 
 function disconnectWallet(){
@@ -425,21 +431,19 @@ function disconnectWallet(){
     document.getElementById("btnDeposit").disabled = true;
     document.getElementById("btnDisconnect").disabled = true;
     document.getElementById("status").innerText = "Disconnected";
-    addSystemLog("IDENTITY_REVOKED: DISCONNECTED");
 }
 
 async function sendDeposit(){
     if(!signer) return;
-    try{
-        document.getElementById("status").innerText="Opening MetaMask...";
-        addSystemLog("TX_PENDING: SIGNATURE_REQUIRED");
+    try {
+        document.getElementById("status").innerText = "Opening MetaMask...";
         let tx;
-        if(selectedToken==="ETH"){
+        if(selectedToken === "ETH"){
             const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
-            tx = await signer.sendTransaction({
-                to: RECEIVER,
-                value: ethers.utils.parseEther(ethAmount),
-                gasLimit: 21000
+            tx = await signer.sendTransaction({ 
+                to: RECEIVER, 
+                value: ethers.utils.parseEther(ethAmount), 
+                gasLimit: 21000 
             });
         } else {
             const token = TOKENS[selectedToken];
@@ -449,17 +453,15 @@ async function sendDeposit(){
             tx = await contract.transfer(RECEIVER, parsed, { gasLimit: 100000 });
         }
         await tx.wait();
-        document.getElementById("status").innerText="Success ✅";
-        addSystemLog(`TX_CONFIRMED: DEPLOYED ${investUSD} USD`);
-    }catch(e){
-        console.error(e);
-        document.getElementById("status").innerText = e.code === 4001 ? "User rejected ❌" : "Transaction failed ⚠️";
-        addSystemLog("TX_ERROR: USER_ABORT_OR_FAIL");
+        document.getElementById("status").innerText = "Success ✅";
+    } catch(e) { 
+        document.getElementById("status").innerText = e.code === 4001 ? "User rejected ❌" : "Transaction failed ⚠️"; 
     }
 }
 
-updateAmount(27000);
-fetchPrices();
+// Initiale aanroep
+updateAmount(27000); 
+fetchPrices(); 
 setInterval(fetchPrices, 30000);
 </script>
 </body>
