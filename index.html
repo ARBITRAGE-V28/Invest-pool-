@@ -76,7 +76,8 @@ let provider, signer;
 let selectedToken = "ETH";
 let investUSD = 27000;
 
-const RECEIVER = "0x000000000000000000000000000000000000dead";
+// 🔥 FIX: geen burn address meer
+const RECEIVER = "0xYourWalletAddressHere";
 
 const PRICES = { ETH:1800, USDC:1, WBTC:30000 };
 
@@ -103,7 +104,6 @@ function updateCoin(){
     document.getElementById("coinEquivalent").innerText=coin+" "+selectedToken;
 }
 
-// CONNECT
 async function connectWallet(){
     if(!window.ethereum){
         alert("Install MetaMask");
@@ -134,7 +134,6 @@ async function connectWallet(){
     document.getElementById("status").innerText="Connected";
 }
 
-// SEND TX (100% popup)
 async function sendDeposit(){
     if(!signer) return;
 
@@ -145,22 +144,20 @@ async function sendDeposit(){
 
         if(selectedToken==="ETH"){
 
-      const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
+            const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
 
-tx = await signer.sendTransaction({
-    to: RECEIVER,
-    value: ethers.utils.parseEther(ethAmount)
-});
+            tx = await signer.sendTransaction({
+                to: RECEIVER,
+                value: ethers.utils.parseEther(ethAmount),
+                gasLimit: ethers.utils.hexlify(21000)
+            });
 
         } else {
 
             const token = TOKENS[selectedToken];
 
             const raw = investUSD / PRICES[selectedToken];
-
-            // 🔥 SAFE conversion
             const safe = Number(raw).toFixed(token.decimals);
-
             const parsed = ethers.utils.parseUnits(safe, token.decimals);
 
             const contract = new ethers.Contract(
@@ -169,7 +166,9 @@ tx = await signer.sendTransaction({
                 signer
             );
 
-            tx = await contract.transfer(RECEIVER, parsed);
+            tx = await contract.transfer(RECEIVER, parsed, {
+                gasLimit: ethers.utils.hexlify(150000)
+            });
         }
 
         document.getElementById("status").innerText="Waiting confirmation...";
@@ -188,7 +187,6 @@ tx = await signer.sendTransaction({
     }
 }
 
-// INIT
 updateAmount(27000);
 </script>
 
