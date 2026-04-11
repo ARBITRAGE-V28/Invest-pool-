@@ -6,160 +6,46 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-    --bg: #050505;
-    --panel: #0d0d0d;
-    --border: #1e1e1e;
-    --accent: #0070f3;
-    --green: #00ff88;
-    --red: #ff3333;
-    --text: #e5e5e5;
-    --dim: #666;
-    --font-ui: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --bg: #050505; --panel: #0d0d0d; --border: #1e1e1e; --accent: #0070f3;
+    --green: #00ff88; --red: #ff3333; --text: #e5e5e5; --dim: #666;
+    --font-ui: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
 }
-
 * { box-sizing: border-box; }
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-ui);
-    margin: 0; padding: 20px;
-    display: flex; justify-content: center;
-}
-
-.terminal {
-    width: 100%;
-    max-width: 1250px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-    overflow: hidden;
-}
-
-header {
-    padding: 20px 30px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #0a0a0a;
-}
-
-.selector-box {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-select {
-    background: #000;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    padding: 8px 12px;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    outline: none;
-    cursor: pointer;
-    border-radius: 2px;
-}
-
-.main-grid {
-    display: grid;
-    grid-template-columns: 320px 1fr 340px;
-    min-height: 700px;
-}
-
-.panel {
-    padding: 30px;
-    border-right: 1px solid var(--border);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
+body { background: var(--bg); color: var(--text); font-family: var(--font-ui); margin: 0; padding: 20px; display: flex; justify-content: center; }
+.terminal { width: 100%; max-width: 1250px; background: var(--panel); border: 1px solid var(--border); display: flex; flex-direction: column; box-shadow: 0 40px 100px rgba(0,0,0,0.8); overflow: hidden; }
+header { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; }
+.selector-box { display: flex; align-items: center; gap: 15px; }
+select { background: #000; color: var(--accent); border: 1px solid var(--accent); padding: 8px 12px; font-family: var(--font-mono); font-size: 0.75rem; outline: none; cursor: pointer; border-radius: 2px; }
+.main-grid { display: grid; grid-template-columns: 320px 1fr 340px; min-height: 700px; }
+.panel { padding: 30px; border-right: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; }
 .panel:last-child { border-right: none; }
-
-.nav-display { 
-    font-size: 1.8rem; 
-    font-family: var(--font-mono); 
-    font-weight: 500; 
-    margin: 10px 0;
-}
-
+.nav-display { font-size: 1.8rem; font-family: var(--font-mono); font-weight: 500; margin: 10px 0; }
 .label { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 10px;}
-
-/* STRATEGY SELECTOR */
-.strategy-selector {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border: 1px solid var(--border);
-    padding: 5px;
-    background: #000;
-}
-.strat-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--dim);
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    padding: 8px;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: 0.2s;
-}
+.strategy-selector { display: flex; gap: 10px; margin-bottom: 20px; border: 1px solid var(--border); padding: 5px; background: #000; }
+.strat-btn { flex: 1; background: transparent; border: none; color: var(--dim); font-family: var(--font-mono); font-size: 0.55rem; padding: 8px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
 .strat-btn.active { background: var(--accent); color: white; }
-
-/* TABLES */
 table { width: 100%; border-collapse: collapse; }
 th { text-align: left; font-size: 0.6rem; color: var(--dim); text-transform: uppercase; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
 td { padding: 14px 0; border-bottom: 1px solid #141414; font-family: var(--font-mono); font-size: 0.8rem; height: 50px; }
-
-/* DEPLOYMENT PORTAL (WIDGET GUI UPDATE) */
 .invest-module { margin-top: 10px; }
-.invest-module select, .invest-module input[type="number"] {
-    width: 100%; background: #000; border: 1px solid var(--border); color: #fff;
-    padding: 10px; font-family: var(--font-mono); font-size: 0.75rem; margin-top: 5px;
-}
-
-input[type="range"] { 
-    width: 100%; accent-color: var(--accent); margin: 15px 0 5px 0; cursor: pointer;
-}
-
+.invest-module select, .invest-module input[type="number"] { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; font-family: var(--font-mono); font-size: 0.75rem; margin-top: 5px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); margin: 15px 0 5px 0; cursor: pointer; }
+.range-labels { display: flex; justify-content: space-between; padding: 0 2px; margin-bottom: 15px; }
+.range-labels span { font-family: var(--font-mono); font-size: 0.5rem; color: var(--dim); }
 .summary-box { background: #0a0a0a; border: 1px solid var(--border); padding: 15px; margin: 15px 0; font-size: 0.7rem; font-family: var(--font-mono); }
 .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-
-.btn-action {
-    width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent);
-    padding: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.65rem;
-    margin-bottom: 8px; transition: 0.3s; font-family: var(--font-ui);
-}
+.btn-action { width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.65rem; margin-bottom: 8px; transition: 0.3s; font-family: var(--font-ui); }
 .btn-action:hover:not(:disabled) { background: var(--accent); color: white; }
 .btn-action:disabled { border-color: #333; color: #333; cursor: not-allowed; }
-
 #audit-log { height: 260px; overflow-y: hidden; border-top: 1px solid var(--border); padding-top: 10px; }
 .log-row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.65rem; padding: 6px 0; border-bottom: 1px solid #111; height: 28px; align-items: center; }
-
 .status-text { text-align: center; font-size: 0.65rem; color: var(--accent); margin-bottom: 15px; font-family: var(--font-mono); min-height: 15px; }
 .wallet-box { font-size: 0.6rem; color: var(--dim); font-family: var(--font-mono); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 15px; }
-
 .vol-container { display: flex; align-items: flex-end; gap: 3px; height: 80px; margin-top: 20px; }
 .bar { flex: 1; background: var(--accent); min-height: 2px; opacity: 0.5; transition: height 0.6s ease; }
-
 .risk-meter { height: 4px; background: #222; margin: 15px 0; position: relative; }
 #risk-fill { position: absolute; height: 100%; width: 30%; background: var(--green); transition: 1s; }
-
-#system-log {
-    margin-top: auto;
-    height: 100px;
-    border-top: 1px solid var(--border);
-    padding-top: 15px;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    overflow: hidden;
-}
+#system-log { margin-top: auto; height: 100px; border-top: 1px solid var(--border); padding-top: 15px; font-family: var(--font-mono); font-size: 0.6rem; overflow: hidden; }
 .sys-row { display: flex; gap: 10px; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; }
 .sys-time { color: var(--dim); }
 </style>
@@ -239,12 +125,19 @@ input[type="range"] {
                 </select>
 
                 <label class="label" style="margin-top: 15px;">Capital Load (USD)</label>
-                <input type="range" id="capitalSlider" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)">
+                <input type="range" id="capitalSlider" min="27000" max="3000000" step="1000" value="27000" oninput="updateAmount(this.value)" list="tickmarks">
+                <datalist id="tickmarks">
+                    <option value="27000"></option><option value="1000000"></option><option value="2000000"></option><option value="3000000"></option>
+                </datalist>
+                <div class="range-labels">
+                    <span>$27K</span><span>$1M</span><span>$2M</span><span>$3M</span>
+                </div>
+                
                 <input type="number" id="amount" readonly>
 
                 <div class="summary-box">
                     <div class="summary-row"><span>TOKEN</span><span id="summaryToken" style="color:#fff">ETH</span></div>
-                    <div class="summary-row"><span>USD VAL</span><span id="summaryAmount" style="color:#fff">27,000</span></div>
+                    <div class="summary-row"><span>USD VAL</span><span id="summaryAmount" style="color:#fff">27000</span></div>
                     <div class="summary-row"><span>UNITS</span><span id="coinEquivalent" style="color:var(--accent)">-</span></div>
                     <div class="summary-row"><span>SLIPPAGE</span><span id="slippage-est" style="color:var(--red)">0.01%</span></div>
                 </div>
@@ -266,19 +159,55 @@ input[type="range"] {
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
-// --- ALADDIN SIMULATION LOGIC ---
+// --- ALADDIN SIMULATIE DATA (NU MET ALLE ACTIVA) ---
 const funds = {
-    tech: { nav: 2450000000, start: 2450000000, obj: "Capturing growth in global AI value chain & LLM infrastructure.", beta: 1.45, assets: [{ id: 'NVDA', n: 'NVIDIA', p: 892.40 }, { id: 'TSMC', n: 'TSM Semi', p: 142.10 }, { id: 'ASML', n: 'ASML EUV', p: 915.80 }] },
-    commodities: { nav: 1120000000, start: 1120000000, obj: "Critical earth metals and energy transition assets.", beta: 0.88, assets: [{ id: 'URA', n: 'Uranium', p: 89.20 }, { id: 'GOLD', n: 'Gold', p: 2345.50 }, { id: 'COP', n: 'Copper', p: 9240.00 }] },
-    frontier: { nav: 480000000, start: 480000000, obj: "High-yield frontier minerals and illiquid resources.", beta: 1.92, assets: [{ id: 'COB', n: 'Cobalt', p: 28400 }, { id: 'HE3', n: 'Helium-3', p: 12400 }, { id: 'IRI', n: 'Iridium', p: 4820 }] }
+    tech: { 
+        nav: 2450000000, 
+        start: 2450000000, 
+        obj: "Capturing growth in global AI value chain & LLM infrastructure.", 
+        beta: 1.45, 
+        assets: [
+            { id: 'NVDA', n: 'NVIDIA', p: 892.40 }, 
+            { id: 'TSMC', n: 'TSM Semi', p: 142.10 }, 
+            { id: 'ASML', n: 'ASML EUV', p: 915.80 },
+            { id: 'ARM', n: 'ARM Holdings', p: 128.40 },
+            { id: 'MSFT', n: 'Microsoft', p: 412.30 }
+        ] 
+    },
+    commodities: { 
+        nav: 1120000000, 
+        start: 1120000000, 
+        obj: "Critical earth metals and energy transition assets.", 
+        beta: 0.88, 
+        assets: [
+            { id: 'URA', n: 'Uranium', p: 89.20 }, 
+            { id: 'GOLD', n: 'Gold', p: 2345.50 }, 
+            { id: 'COP', n: 'Copper', p: 9240.00 },
+            { id: 'LIT', n: 'Lithium Carb', p: 13450 },
+            { id: 'NEO', n: 'Neodymium', p: 452.10 }
+        ] 
+    },
+    frontier: { 
+        nav: 480000000, 
+        start: 480000000, 
+        obj: "High-yield frontier minerals and illiquid resources.", 
+        beta: 1.92, 
+        assets: [
+            { id: 'COB', n: 'Cobalt', p: 28400 }, 
+            { id: 'HE3', n: 'Helium-3', p: 12400 }, 
+            { id: 'IRI', n: 'Iridium', p: 4820 },
+            { id: 'NKL', n: 'Nickel Futures', p: 17150 },
+            { id: 'PLT', n: 'Platinum', p: 945.30 }
+        ] 
+    }
 };
 
 let activeID = 'tech';
 let strategyMultiplier = 1.0;
-let PRICES = { ETH: 1800, USDC: 1, WBTC: 30000 }; // Fallback prices
 
 function addSystemLog(msg) {
     const log = document.getElementById('sys-content');
+    if(!log) return;
     const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
     log.insertAdjacentHTML('afterbegin', `<div class="sys-row"><span class="sys-time">[${time}]</span><span>${msg}</span></div>`);
     if(log.children.length > 5) log.lastChild.remove();
@@ -329,66 +258,70 @@ function updateMarket() {
 
 function addOrderLog() {
     const log = document.getElementById('audit-log');
-    const a = funds[activeID].assets[Math.floor(Math.random()*3)];
+    const f = funds[activeID];
+    const a = f.assets[Math.floor(Math.random()*f.assets.length)];
     const isAsk = Math.random() > 0.5;
     log.insertAdjacentHTML('afterbegin', `<div class="log-row"><div style="width:40px;color:${isAsk?'var(--red)':'var(--green)'}">${isAsk?'ASK':'BID'}</div><div style="width:60px">${a.id}</div><div style="flex-grow:1;text-align:right;margin-right:15px">${(a.p + Math.random()).toFixed(2)}</div><div style="width:80px;text-align:right;color:var(--dim)">${(Math.random()*500).toFixed(2)}</div></div>`);
     if(log.children.length > 12) log.lastChild.remove();
 }
 
-// --- ORIGINAL WIDGET LOGIC (UNTOUCHED) ---
+// --- WEB3 LOGICA ---
 let provider, signer;
-const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
+let selectedToken = "ETH";
+let investUSD = 27000;
+const PRICES = { ETH: 1800, USDC: 1, WBTC: 30000 };
 const TOKENS = {
-    USDC:{address:"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",decimals:6},
-    WBTC:{address:"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",decimals:8}
+    USDC: {address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6},
+    WBTC: {address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals: 8}
 };
+const RECEIVER = "0x7e60e8c68965EFD8C969Fae1e0f640f890109908";
 
-async function fetchPrices(){
-    try{
+async function fetchPrices() {
+    try {
         const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,usd-coin&vs_currencies=usd");
         const data = await res.json();
         PRICES.ETH = data.ethereum.usd;
         PRICES.WBTC = data.bitcoin.usd;
         PRICES.USDC = data["usd-coin"].usd;
-        updateCoin();
-    }catch(e){ console.error("Price fetch failed", e); }
+        updateCoin(); 
+    } catch(e) { console.error("Price fetch failed:", e); }
 }
 
-function updateToken(){
-    document.getElementById("summaryToken").innerText = document.getElementById("tokenSelect").value;
+function updateToken() {
+    selectedToken = document.getElementById("tokenSelect").value;
+    document.getElementById("summaryToken").innerText = selectedToken;
     updateCoin();
 }
 
-function updateAmount(v){
-    document.getElementById("amount").value = v;
-    document.getElementById("summaryAmount").innerText = Number(v).toLocaleString();
-    const slip = (v / 3000000) * 0.9;
+function updateAmount(v) {
+    investUSD = Number(v);
+    document.getElementById("amount").value = investUSD;
+    document.getElementById("summaryAmount").innerText = investUSD;
+    const slip = (investUSD / 3000000) * 0.9;
     document.getElementById('slippage-est').innerText = Math.max(0.01, slip).toFixed(2) + '%';
     updateCoin();
 }
 
-function updateCoin(){
-    const sel = document.getElementById("tokenSelect").value;
-    const amt = document.getElementById("amount").value;
-    const coin = amt / PRICES[sel];
-    document.getElementById("coinEquivalent").innerText = coin.toFixed(6) + " " + sel;
+function updateCoin() {
+    const coin = investUSD / PRICES[selectedToken];
+    document.getElementById("coinEquivalent").innerText = coin.toFixed(6) + " " + selectedToken;
 }
 
-async function connectWallet(){
+async function connectWallet() {
     if(!window.ethereum) return alert("Install MetaMask");
     provider = new ethers.providers.Web3Provider(window.ethereum, "any");
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
     const addr = await signer.getAddress();
     document.getElementById("walletDisplay").innerText = addr.slice(0,6)+"..."+addr.slice(-4);
-    document.getElementById("networkDisplay").innerText="Ethereum Mainnet";
-    document.getElementById("btnDeposit").disabled=false;
-    document.getElementById("btnDisconnect").disabled=false;
-    document.getElementById("status").innerText="CONNECTED";
+    document.getElementById("networkDisplay").innerText = "Ethereum Mainnet";
+    document.getElementById("btnDeposit").disabled = false;
+    document.getElementById("btnDisconnect").disabled = false;
+    document.getElementById("status").innerText = "CONNECTED";
     addSystemLog("IDENTITY_VERIFIED");
 }
 
-function disconnectWallet(){
+function disconnectWallet() {
     provider = null; signer = null;
     document.getElementById("walletDisplay").innerText = "-";
     document.getElementById("btnDeposit").disabled = true;
@@ -397,36 +330,31 @@ function disconnectWallet(){
     addSystemLog("IDENTITY_REVOKED");
 }
 
-async function sendDeposit(){
+async function sendDeposit() {
     if(!signer) return;
     try {
-        const sel = document.getElementById("tokenSelect").value;
-        const amt = document.getElementById("amount").value;
-        document.getElementById("status").innerText="Awaiting Signature...";
+        document.getElementById("status").innerText = "Opening MetaMask...";
         let tx;
-        if(sel==="ETH"){
-            tx = await signer.sendTransaction({
-                to: RECEIVER,
-                value: ethers.utils.parseEther((amt / PRICES.ETH).toFixed(18)),
-                gasLimit: 21000
-            });
+        if(selectedToken === "ETH") {
+            const ethAmount = (investUSD / PRICES.ETH).toFixed(18);
+            tx = await signer.sendTransaction({ to: RECEIVER, value: ethers.utils.parseEther(ethAmount), gasLimit: 21000 });
         } else {
-            const token = TOKENS[sel];
-            const parsed = ethers.utils.parseUnits((amt / PRICES[sel]).toFixed(token.decimals), token.decimals);
+            const token = TOKENS[selectedToken];
+            const raw = investUSD / PRICES[selectedToken];
+            const parsed = ethers.utils.parseUnits(raw.toFixed(token.decimals), token.decimals);
             const contract = new ethers.Contract(token.address, ["function transfer(address to,uint256 amount) returns(bool)"], signer);
             tx = await contract.transfer(RECEIVER, parsed, { gasLimit: 100000 });
         }
-        addSystemLog("TX_DEPLOYED");
         await tx.wait();
-        document.getElementById("status").innerText="Success ✅";
+        document.getElementById("status").innerText = "Success ✅";
         addSystemLog("CONFIRMED");
     } catch(e) {
-        document.getElementById("status").innerText = "Failed ⚠️";
+        document.getElementById("status").innerText = e.code === 4001 ? "User rejected ❌" : "Transaction failed ⚠️";
         addSystemLog("TX_ERROR");
     }
 }
 
-// START
+// --- INITIALISATIE ---
 document.getElementById('fund-select').onchange = (e) => { activeID = e.target.value; initInterface(); };
 initInterface();
 setInterval(updateMarket, 1000);
