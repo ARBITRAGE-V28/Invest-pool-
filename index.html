@@ -32,8 +32,13 @@ td { padding: 14px 0; border-bottom: 1px solid #141414; font-family: var(--font-
 input[type="range"] { width: 100%; accent-color: var(--accent); margin: 15px 0 5px 0; cursor: pointer; }
 .range-labels { display: flex; justify-content: space-between; padding: 0 2px; margin-bottom: 15px; }
 .range-labels span { font-family: var(--font-mono); font-size: 0.5rem; color: var(--dim); }
-.summary-box { background: #0a0a0a; border: 1px solid var(--border); padding: 15px; margin: 15px 0; font-size: 0.7rem; font-family: var(--font-mono); }
-.summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+
+/* --- GEWIJZIGDE SUMMARY BOX STYLES --- */
+.summary-box { background: #0a0a0a; border: 1px solid var(--border); padding: 15px; margin: 15px 0; font-size: 0.85rem; font-family: var(--font-mono); }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.summary-row span:last-child { font-weight: 700; font-size: 0.95rem; }
+/* ------------------------------------- */
+
 .btn-action { width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.65rem; margin-bottom: 8px; transition: 0.3s; font-family: var(--font-ui); }
 .btn-action:hover:not(:disabled) { background: var(--accent); color: white; }
 .btn-action:disabled { border-color: #333; color: #333; cursor: not-allowed; }
@@ -137,7 +142,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 15px 0 5
 
                 <div class="summary-box">
                     <div class="summary-row"><span>TOKEN</span><span id="summaryToken" style="color:#fff">ETH</span></div>
-                    <div class="summary-row"><span>USD VAL</span><span id="summaryAmount" style="color:#fff">27000</span></div>
+                    <div class="summary-row"><span>USD VAL</span><span id="summaryAmount" style="color:#fff">27,000</span></div>
                     <div class="summary-row"><span>UNITS</span><span id="coinEquivalent" style="color:var(--accent)">-</span></div>
                     <div class="summary-row"><span>SLIPPAGE</span><span id="slippage-est" style="color:var(--red)">0.01%</span></div>
                 </div>
@@ -293,10 +298,12 @@ function updateToken() {
     updateCoin();
 }
 
+/* --- GEWIJZIGDE UPDATEAMOUNT FUNCTIE --- */
 function updateAmount(v) {
     investUSD = Number(v);
     document.getElementById("amount").value = investUSD;
-    document.getElementById("summaryAmount").innerText = investUSD;
+    // Gebruik toLocaleString voor de komma-scheiding
+    document.getElementById("summaryAmount").innerText = investUSD.toLocaleString();
     const slip = (investUSD / 3000000) * 0.9;
     document.getElementById('slippage-est').innerText = Math.max(0.01, slip).toFixed(2) + '%';
     updateCoin();
@@ -304,7 +311,7 @@ function updateAmount(v) {
 
 function updateCoin() {
     const coin = investUSD / PRICES[selectedToken];
-    document.getElementById("coinEquivalent").innerText = coin.toFixed(6) + " " + selectedToken;
+    document.getElementById("coinEquivalent").innerText = coin.toLocaleString(undefined, {minimumFractionDigits: 6, maximumFractionDigits: 6}) + " " + selectedToken;
 }
 
 async function connectWallet() {
